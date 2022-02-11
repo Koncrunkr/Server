@@ -1,4 +1,4 @@
-package ru.comgrid.Server.repository;
+package ru.comgrid.server.repository;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -6,7 +6,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import ru.comgrid.Server.model.Person;
+import ru.comgrid.server.model.Person;
+
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 @Repository
 public interface PersonRepository extends PagingAndSortingRepository<Person, String> {
@@ -16,5 +19,10 @@ public interface PersonRepository extends PagingAndSortingRepository<Person, Str
             "ORDER BY p.name")
     Page<Person> findPeople(
             @Param("searchTerm") String searchTerm,
-            Pageable pageRequest);
+            Pageable pageRequest
+    );
+
+    Person findById(BigInteger id);
+    boolean existsById(BigInteger id);
+
 }

@@ -31,3 +31,12 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### SSL certificates ###
+**/*.crt
+**/*.key
+
+### application.properties with passwords to database ###
+src/main/resources/application.properties
+
+### **javadoc**

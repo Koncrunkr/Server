@@ -1,13 +1,15 @@
-package ru.comgrid.Server.model;
+package ru.comgrid.server.model;
 
+import com.google.gson.JsonObject;
 import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigInteger;
 
 @Entity
-public class Chat implements Serializable {
+public class Chat implements Serializable, Jsonable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -18,9 +20,10 @@ public class Chat implements Serializable {
     @Setter
     private String name;
 
+    @Column(length = 40)
     @Getter
     @Setter
-    private String creator;
+    private BigInteger creator;
 
     public Long getId() {
         return id;
@@ -34,8 +37,13 @@ public class Chat implements Serializable {
 
     }
 
-    public Chat(String id, String creator, String name) {
+    public Chat(String id, BigInteger creator, String name) {
         this.creator = creator;
         this.name = name;
+    }
+
+    @Override
+    public JsonObject toJson(){
+        return null;
     }
 }

@@ -1,4 +1,4 @@
-package ru.comgrid.Server.model;
+package ru.comgrid.server.model;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -18,9 +18,9 @@ public class MessageId implements Serializable {
 
     @Getter
     @Setter
-    private String chatId;
+    private Long chatId;
 
-    public MessageId(Integer x, Integer y, String chatId) {
+    public MessageId(Integer x, Integer y, Long chatId) {
         this.x = x;
         this.y = y;
         this.chatId = chatId;
