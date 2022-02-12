@@ -1,33 +1,60 @@
 package ru.comgrid.server.model;
 
 import lombok.Getter;
+import lombok.Setter;
 
-import javax.persistence.EmbeddedId;
-import javax.persistence.Entity;
+import javax.persistence.*;
 import java.io.Serializable;
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
 public class Message implements Serializable {
-    @EmbeddedId
-    private MessageId messageId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false)
+    @Getter
+    @Setter
+    private Long id;
 
     @Getter
+    @Setter
+    @Column(nullable = false)
+    private Integer xCoord;
+
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private Integer yCoord;
+
+    @Getter
+    @Setter
+    @Column(nullable = false)
+    private Long chatId;
+
+    @Getter
+    @Column(nullable = false)
+    @Setter
     private LocalDateTime time;
 
     @Getter
-    private BigInteger senderId;
+    @Column(nullable = false, precision = 40)
+    @Setter
+    private BigDecimal senderId;
 
     @Getter
+    @Column(nullable = false)
     private String text;
 
-    public Message(MessageId messageId, LocalDateTime time, BigInteger senderId, String text){
-        this.messageId = messageId;
+    public Message(Integer xCoord, Integer yCoord, Long chatId, LocalDateTime time, BigDecimal senderId, String text){
+        this.xCoord = xCoord;
+        this.yCoord = yCoord;
+        this.chatId = chatId;
         this.time = time;
         this.senderId = senderId;
         this.text = text;
     }
+
 
     public Message() {
     }

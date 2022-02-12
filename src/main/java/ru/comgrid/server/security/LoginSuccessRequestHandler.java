@@ -7,6 +7,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import ru.comgrid.server.model.Person;
 import ru.comgrid.server.repository.PersonRepository;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ public class LoginSuccessRequestHandler extends OidcUserService{
         var user = super.loadUser(userRequest);
         Map<String, Object> infoAboutUser = userRequest.getIdToken().getClaims();
 
-        BigInteger id = new BigInteger((String) infoAboutUser.get(idKey));
+        BigDecimal id = new BigDecimal((String) infoAboutUser.get(idKey));
         if(personRepository.existsById(id)){
             return user;
         }

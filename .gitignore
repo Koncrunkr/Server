@@ -35,8 +35,11 @@ build/
 ### SSL certificates ###
 **/*.crt
 **/*.key
+**/*.p12
+**/*.jks
 
 ### application.properties with passwords to database ###
 src/main/resources/application.properties
 
 ### **javadoc**
+javadoc/

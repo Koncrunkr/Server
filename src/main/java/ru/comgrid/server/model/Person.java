@@ -9,28 +9,28 @@ import ru.comgrid.server.service.Provider;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.util.Date;
 
 
 /**
  * Person. It has:
  * <pre>
- | field           | includes | how to include           |
- |-----------------|----------|:-------------------------|
- | id: biginteger  | always   |                          |
- | name: string    | always   |                          |
- | email: string   | always   |                          |
- | avatar: string  | always   |                          |
- | chats: {@link Chat}[] | optional | param includeChats=true |
+ | field           | includes | how to include          | description                                           |
+ |-----------------|----------|:------------------------|-------------------------------------------------------|
+ | id: string      | always   |                         | unique person id consisting of digits                 |
+ | name: string    | always   |                         | name of user                                          |
+ | email: string   | always   |                         | email of user                                         |
+ | avatar: string  | always   |                         | link to avatar of user                                |
+ | chats: {@link Chat}[]   | optional | param includeChats=true | list of {@link Chat}s, that this user participates in         |
  * </pre>
  */
 @Entity
-public class Person implements Serializable, Persistable<BigInteger>, Jsonable{
+public class Person implements Serializable, Persistable<BigDecimal>, Jsonable{
     @Id
     @Getter
     @Column(precision = 40)
-    private BigInteger id;
+    private BigDecimal id;
 
     @Column(length = 50, nullable = false)
     @Getter
@@ -79,7 +79,7 @@ public class Person implements Serializable, Persistable<BigInteger>, Jsonable{
     private Iterable<Chat> chats = null;
 
 
-    public Person(BigInteger id, String name, String email, String avatar) {
+    public Person(BigDecimal id, String name, String email, String avatar) {
         this.id = id;
         this.name = name;
         this.email = email;
