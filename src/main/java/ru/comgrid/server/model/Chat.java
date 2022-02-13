@@ -100,7 +100,7 @@ public class Chat implements Serializable, Jsonable{
         jsonObject.addProperty("width", width);
         jsonObject.addProperty("height", height);
         jsonObject.addProperty("avatar", avatar);
-        jsonObject.addProperty("created", created.getNano()/1_000_000 + created.toEpochSecond(ZoneOffset.UTC));
+        jsonObject.addProperty("created", created.getNano()/1_000_000 + created.toEpochSecond(ZoneOffset.UTC)*1000);
 
         if(participants != null){
             JsonArray participantsJson = new JsonArray();

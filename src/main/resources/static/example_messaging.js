@@ -17,9 +17,9 @@ function connect() {
     stompClient = Stomp.over(socket);
     stompClient.connect({}, function (frame) {
         setConnected(true);
-        console.log('Connected: ' + frame);
-        const chatId = 1;
-        stompClient.subscribe('/app/table/queue/' + chatId, function (greeting) {
+        $("#stomp").append("<tr><td>" + frame + "</td></tr>")
+        const chatId = $("#chatId").val();
+        stompClient.subscribe("/app/table/queue/" + chatId, function (greeting) {
             showMessage(greeting.body);
         });
     });
@@ -37,9 +37,9 @@ function sendMessage() {
     stompClient.send("/app/table", {},
         JSON.stringify(
             {
-                xCoord: parseInt($("#xCoord").val()),
-                yCoord: parseInt($("#yCoord").val()),
-                chatId: 1,
+                x: $("#xCoord").val(),
+                y: $("#yCoord").val(),
+                chatId: $("#chatId").val(),
                 text: $("#text").val()
             }
         )

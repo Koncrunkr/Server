@@ -20,12 +20,12 @@ public class Message implements Serializable {
     @Getter
     @Setter
     @Column(nullable = false)
-    private Integer xCoord;
+    private Integer x;
 
     @Getter
     @Setter
     @Column(nullable = false)
-    private Integer yCoord;
+    private Integer y;
 
     @Getter
     @Setter
@@ -46,9 +46,9 @@ public class Message implements Serializable {
     @Column(nullable = false)
     private String text;
 
-    public Message(Integer xCoord, Integer yCoord, Long chatId, LocalDateTime time, BigDecimal senderId, String text){
-        this.xCoord = xCoord;
-        this.yCoord = yCoord;
+    public Message(Integer x, Integer y, Long chatId, LocalDateTime time, BigDecimal senderId, String text){
+        this.x = x;
+        this.y = y;
         this.chatId = chatId;
         this.time = time;
         this.senderId = senderId;

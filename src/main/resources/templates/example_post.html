@@ -33,8 +33,30 @@
                     <label for="height">Height</label>
                     <input type="number" id="height" class="form-control" placeholder="height">
                 </div>
-                <button id="send" class="btn btn-default" type="submit">Send</button>
+                <button id="send_table" class="btn btn-default" type="submit">Send</button>
             </form>
+        </div>
+        <div class="col-md-6">
+            <form class="form-inline">
+                <div class="form-group">
+                    <label for="includeChats">Do you want to include chats?</label>
+                    <input type="text" id="includeChats" class="form-control" placeholder="true/false">
+                </div>
+                <button id="send_info" class="btn btn-default" type="submit">Send</button>
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-12">
+            <table id="conversation" class="table table-striped">
+                <thead>
+                <tr>
+                    <th>Received html responses</th>
+                </tr>
+                </thead>
+                <tbody id="responses">
+                </tbody>
+            </table>
         </div>
     </div>
 </div>

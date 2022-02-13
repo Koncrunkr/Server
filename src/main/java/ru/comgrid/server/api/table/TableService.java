@@ -119,7 +119,7 @@ public class TableService{
         Chat chat = chatRepository.findById(chatId).get();
 
         if(includeParticipants){
-            List<BigDecimal> personIds = participantsRepository.findAllByTableUnwrapped(
+            List<BigDecimal> personIds = participantsRepository.findAllByChat(
                 chatId,
                 Pageable.ofSize(defaultPageSize)
             ).getContent();
@@ -194,7 +194,7 @@ public class TableService{
 
 
     private ResponseEntity<String> getLastMessages(MessagesRequest messagesRequest){
-        Page<Message> messages = messageRepository.findAllByChatIdAndXCoordBetweenAndYCoordBetweenOrderByTimeDesc(
+        Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenOrderByTimeDesc(
             messagesRequest.chatId, messagesRequest.xCoordLeftTop, messagesRequest.xCoordRightBottom,
             messagesRequest.yCoordLeftTop, messagesRequest.yCoordRightBottom,
             Pageable.ofSize(messagesRequest.amountOfMessages)
@@ -206,7 +206,7 @@ public class TableService{
     private ResponseEntity<String> getMessagesUntil(MessagesRequest messagesRequest){
         LocalDateTime until = TableHelp.toDateTime(messagesRequest.untilDateTimeMillis);
 
-        Page<Message> messages = messageRepository.findAllByChatIdAndXCoordBetweenAndYCoordBetweenAndTimeBeforeOrderByTimeDesc(
+        Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeBeforeOrderByTimeDesc(
             messagesRequest.chatId,
             messagesRequest.xCoordLeftTop,
             messagesRequest.xCoordRightBottom,
@@ -222,7 +222,7 @@ public class TableService{
     private ResponseEntity<String> getMessagesSince(MessagesRequest messagesRequest){
         LocalDateTime since = TableHelp.toDateTime(messagesRequest.sinceDateTimeMillis);
 
-        Page<Message> messages = messageRepository.findAllByChatIdAndXCoordBetweenAndYCoordBetweenAndTimeAfterOrderByTimeDesc(
+        Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeAfterOrderByTimeDesc(
             messagesRequest.chatId,
             messagesRequest.xCoordLeftTop,
             messagesRequest.xCoordRightBottom,
@@ -239,7 +239,7 @@ public class TableService{
         LocalDateTime since = TableHelp.toDateTime(messagesRequest.sinceDateTimeMillis);
         LocalDateTime until = TableHelp.toDateTime(messagesRequest.untilDateTimeMillis);
 
-        Page<Message> messages = messageRepository.findAllByChatIdAndXCoordBetweenAndYCoordBetweenAndTimeBetweenOrderByTimeDesc(
+        Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeBetweenOrderByTimeDesc(
             messagesRequest.chatId,
             messagesRequest.xCoordLeftTop,
             messagesRequest.xCoordRightBottom,

@@ -1,7 +1,7 @@
 
 function postCreateTable(){
     fetch(
-        "http://localhost:8080/table/create",
+        "/table/create",
         {
             method: "POST",
             headers: {"Content-Type": "application/json"},
@@ -15,7 +15,21 @@ function postCreateTable(){
     ).then(
         response => response.text()
     ).then(
-        html => $("#greetings").append("<tr><td>" + html + "</td></tr>")
+        html => $("#responses").append("<tr><td>" + html + "</td></tr>")
+    )
+}
+
+function getUserInfo(){
+    fetch(
+        "/user/info?includeChats=" + ($("#includeChats").val() === "true"),
+        {
+            method: "GET",
+            headers: {"Content-Types": "application/json"}
+        }
+    ).then(
+        response => response.text()
+    ).then(
+        html => $("#responses").append("<tr><td>" + html + "</td></tr>")
     )
 }
 
@@ -23,5 +37,6 @@ $(function (){
     $("form").on('submit', function (e) {
         e.preventDefault();
     });
-    $("#send").click(function() { postCreateTable(); });
+    $("#send_table").click(function() { postCreateTable(); });
+    $("#send_info").click(function() { getUserInfo(); });
 })

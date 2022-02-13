@@ -4,12 +4,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.repository.PagingAndSortingRepository;
 import ru.comgrid.server.model.Message;
-import ru.comgrid.server.model.Person;
 
 import java.time.LocalDateTime;
 
 public interface MessageRepository extends PagingAndSortingRepository<Message, Long> {
-    Page<Message> findAllByChatIdAndXCoordBetweenAndYCoordBetweenOrderByTimeDesc(
+    Page<Message> findAllByChatIdAndXBetweenAndYBetweenOrderByTimeDesc(
         Long chatId,
         Integer startX,
         Integer endX,
@@ -18,7 +17,7 @@ public interface MessageRepository extends PagingAndSortingRepository<Message, L
         Pageable pageable
     );
 
-    Page<Message> findAllByChatIdAndXCoordBetweenAndYCoordBetweenAndTimeBeforeOrderByTimeDesc(
+    Page<Message> findAllByChatIdAndXBetweenAndYBetweenAndTimeBeforeOrderByTimeDesc(
         Long chatId,
         Integer startX,
         Integer endX,
@@ -28,7 +27,7 @@ public interface MessageRepository extends PagingAndSortingRepository<Message, L
         Pageable pageable
     );
 
-    Page<Message> findAllByChatIdAndXCoordBetweenAndYCoordBetweenAndTimeBetweenOrderByTimeDesc(
+    Page<Message> findAllByChatIdAndXBetweenAndYBetweenAndTimeBetweenOrderByTimeDesc(
         Long chatId,
         Integer startX,
         Integer endX,
@@ -39,7 +38,7 @@ public interface MessageRepository extends PagingAndSortingRepository<Message, L
         Pageable pageable
     );
 
-    Page<Message> findAllByChatIdAndXCoordBetweenAndYCoordBetweenAndTimeAfterOrderByTimeDesc(
+    Page<Message> findAllByChatIdAndXBetweenAndYBetweenAndTimeAfterOrderByTimeDesc(
         Long chatId,
         Integer startX,
         Integer endX,

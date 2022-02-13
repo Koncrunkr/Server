@@ -1,6 +1,8 @@
 package ru.comgrid.server.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.trace.http.HttpTraceRepository;
+import org.springframework.boot.actuate.trace.http.InMemoryHttpTraceRepository;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -42,6 +44,11 @@ public class SecurityConfig
             .deleteCookies("JSESSIONID")
             .and()
             .rememberMe();
+    }
+
+    @Bean
+    public HttpTraceRepository httpTraceRepository(){
+        return new InMemoryHttpTraceRepository();
     }
 
     @Bean
