@@ -11,14 +11,28 @@
 	</parent>
 
 	<groupId>ru.comgrid</groupId>
-	<artifactId>Server</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<artifactId>server</artifactId>
+	<version>0.1</version>
 	<name>Server</name>
 	<description>Server for comgrid.ru</description>
 
 	<properties>
 		<java.version>11</java.version>
 	</properties>
+
+	<repositories>
+		<repository>
+			<id>space-javaserver</id>
+			<url>https://maven.pkg.jetbrains.space/koncrunkr/p/comgrid/javaserver</url>
+		</repository>
+	</repositories>
+
+	<distributionManagement>
+		<repository>
+			<id>space-javaserver</id>
+			<url>https://maven.pkg.jetbrains.space/koncrunkr/p/comgrid/javaserver</url>
+		</repository>
+	</distributionManagement>
 
 	<dependencies>
 		<!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-thymeleaf -->

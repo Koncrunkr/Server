@@ -20,6 +20,9 @@ import java.util.List;
 
 /**
  * User service, that has most commonly used user targeted endpoints.
+ * (frontend must not specify any credentials since
+ *  it is done automatically if person is authorized)
+ * @author MediaNik
  */
 @RestController
 @RequestMapping(value = "/user", produces = "application/json")
@@ -30,6 +33,9 @@ public class UserService{
     private final ChatRepository chatRepository;
     private final int defaultPageSize;
 
+    /**
+     * @hidden
+     */
     public UserService(
         PersonRepository personRepository,
         ChatParticipantsRepository chatParticipantsRepository,
@@ -43,12 +49,16 @@ public class UserService{
     }
 
     /**
-     * Get {@link Person}(frontend must not specify any credentials since
-     * it is done automatically if person is authorized).
+     * Get {@link Person}.
      * <p>
      * Add "includeChats=true" param if you want to include chats in returned {@link Person} object
      * </p>
      *
+     * <pre>
+     * Example:
+     * https://comgrid.ru:8443/user/info?includeChats=true
+     * https://comgrid.ru:8443/user/info
+     * </pre>
      * @param user Authenticated user from Spring security
      * @param includeChats boolean value whether to include {@link Chat} list or not
      * @return {@link Person} in json format

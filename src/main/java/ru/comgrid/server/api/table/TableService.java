@@ -27,6 +27,9 @@ import java.util.List;
 
 /**
  * Table service, that has most commonly used table targeted endpoints.
+ * (frontend must not specify any credentials since
+ * it is done automatically if person is authorized)
+ * @author MediaNik
  */
 @RestController
 @RequestMapping(value = "/table", produces = "application/json")
@@ -39,6 +42,9 @@ public class TableService{
     private final int defaultPageSize;
     private final int maxMessagesSize;
 
+    /**
+     * @hidden
+     */
     public TableService(
         @Autowired ChatRepository chatRepository,
         @Autowired ChatParticipantsRepository participantsRepository,
@@ -58,16 +64,37 @@ public class TableService{
     /**
      * Create the table with specified parameters:
      * <pre>
-     | param           | includes | description                |
-     |-----------------|----------|----------------------------|
-     | name: string    | always   | name of chat               |
-     | creator: string | never    | chat's creator's unique id |
-     | width: integer  | always   | width of chat in cells     |
-     | height: integer | always   | height of chat in cells    |
-     | avatar: string  | always   | link to avatar of chat     |
+| param           | includes | description                |
+|-----------------|----------|----------------------------|
+| name: string    | always   | name of chat               |
+| creator: string | never    | chat's creator's unique id |
+| width: integer  | always   | width of chat in cells     |
+| height: integer | always   | height of chat in cells    |
+| avatar: string  | always   | link to avatar of chat     |
      * </pre>
      * <i>Note: you should not include creator's id, because authenticated user's will be used</i>
      *
+     * <pre>
+Example:
+//js
+fetch(
+     "/table/create",
+    {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            "name": name, // string
+            "avatar": avatar, // string link
+            "width": width, // int
+            "height": height // int
+        })
+    }
+).then(
+    response => response.text()
+).then(
+    html => console.log(html)
+)
+     * </pre>
      * @param user implementation specific user info
      * @param chat chat object accommodating all parameters
      * @return Created {@link Chat} object in json format
@@ -87,19 +114,20 @@ public class TableService{
     }
 
     /**
-     * Get information about table with specified parameters:
+     * <p>Get information about table with specified parameters:</p>
      * <pre>
-     | param                        | includes | description                                   |
-     |------------------------------|----------|-----------------------------------------------|
-     | id: integer                  | always   | unique id of table(chat)                      |
-     | includeParticipants: boolean | optional | whether to include participants({@link Person}) or not |
+       | param                        | includes | description                                   |
+       |------------------------------|----------|-----------------------------------------------|
+       | id: integer                  | always   | unique id of table(chat)                      |
+       | includeParticipants: boolean | optional | whether to include participants({@link Person}) or not |
      * </pre>
      *
      * <pre>
-     *     Example:
-     *     https://comgrid.ru:8443/table/info?chatId=1224005912&includeParticipants=true
-     *     https://comgrid.ru:8443/table/info?chatId=111111
+     * Example:
+     * https://comgrid.ru:8443/table/info?chatId=1224005912&includeParticipants=true
+     * https://comgrid.ru:8443/table/info?chatId=111111
      * </pre>
+     *
      * @param user Authenticated user from Spring security
      * @param chatId id of chat, that you want to know info about
      * @param includeParticipants whether to include participants({@link Person}) or not
@@ -145,6 +173,31 @@ public class TableService{
      | amountOfMessages    | optional | Amount of messages that will be loaded(maximum available 100, default is 50) |
      | sinceDateTimeMillis | optional | Minimum time of messages to include(default no limit)                        |
      | untilDateTimeMillis | optional | Maximum time of messages to include(default no limit)                        |
+     * </pre>
+     * <pre>
+Example:
+// js
+fetch(
+     "/table/messages",
+    {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+            "chatId": name, // int
+            "xCoordLeftTop": square.topLeft.x, // int
+            "yCoordLeftTop": square.topLeft.y, // int
+            "xCoordRightBottom": square.rightBottom.x, // int
+            "yCoordRightBottom": square.rightBottom.y, // int
+            "amountOfMessages": amountOfMessages, // int
+            "sinceDateTimeMillis": since.toMillis(), // int
+            "untilDateTimeMillis": until.toMillis() // int
+        })
+    }
+).then(
+    response => response.text()
+).then(
+    html => console.log(html)
+)
      * </pre>
      * @param user Authenticated user from Spring security
      * @param messagesRequest chat object accommodating all parameters

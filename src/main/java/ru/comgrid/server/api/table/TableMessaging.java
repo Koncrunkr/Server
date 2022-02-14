@@ -24,13 +24,19 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
 
-//@ServerEndpoint("/messaging")
+/**
+ * Table messaging via SockJS(WebSocket)
+ * @author MediaNik
+ */
 @Controller
 public class TableMessaging{
     private final ChatParticipantsRepository participantsRepository;
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
+    /**
+     * @hidden
+     */
     public TableMessaging(
         @Autowired ChatParticipantsRepository participantsRepository,
         @Autowired MessageRepository messageRepository,
