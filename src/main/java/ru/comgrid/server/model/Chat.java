@@ -25,6 +25,7 @@ import java.time.ZoneOffset;
  | width: integer     | always   | width of chat in cells           |
  | height: integer    | always   | height of chat in cells          |
  | avatar: string     | always   | link to avatar of chat           |
+ | created: integer   | always   | time in millis            |
  | participants: list | optional | list consisting of {@link Person} objects |
  * </pre>
  */

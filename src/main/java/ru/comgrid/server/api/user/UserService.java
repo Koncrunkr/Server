@@ -5,11 +5,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import ru.comgrid.server.model.Person;
 import ru.comgrid.server.model.Chat;
 import ru.comgrid.server.repository.ChatParticipantsRepository;
@@ -49,21 +45,32 @@ public class UserService{
     }
 
     /**
-     * Get {@link Person}.
+     * Get this {@link Person}.
      * <p>
      * Add "includeChats=true" param if you want to include chats in returned {@link Person} object
      * </p>
      *
      * <pre>
      * Example:
-     * https://comgrid.ru:8443/user/info?includeChats=true
-     * https://comgrid.ru:8443/user/info
+     *
+       fetch(
+           "https://comgrid.ru:8443/user/info?includeChats=true",
+           {
+               method: "GET",
+               credentials: "include", // compulsory
+               headers: {"Content-Type": "application/json"}
+           }
+       ).then(
+           response => response.text()
+       ).then(
+           html => console.log(html)
+       )
      * </pre>
      * @param user Authenticated user from Spring security
      * @param includeChats boolean value whether to include {@link Chat} list or not
      * @return {@link Person} in json format
      */
-    @GetMapping(value = "/info")
+    @GetMapping("/info")
     public ResponseEntity<String> getUserInfo(
         @AuthenticationPrincipal OAuth2User user,
         @RequestParam(required = false, defaultValue = "false") boolean includeChats
@@ -73,7 +80,7 @@ public class UserService{
         Person person = personRepository.findById(id).get();
 
         if(includeChats){
-            List<Long> chatIds = chatParticipantsRepository.findAllByPerson(
+            List<Long> chatIds = chatParticipantsRepository.findAllChatsByPerson(
                 person.getId(),
                 Pageable.ofSize(defaultPageSize)
             ).getContent();
@@ -83,4 +90,9 @@ public class UserService{
 
         return ResponseEntity.ok(person.toString());
     }
+//
+//    @GetMapping("/chats")
+//    public ResponseEntity<String> getUserChats(){
+//
+//    }
 }

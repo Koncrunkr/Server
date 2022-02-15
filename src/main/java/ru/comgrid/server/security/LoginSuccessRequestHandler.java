@@ -1,5 +1,6 @@
 package ru.comgrid.server.security;
 
+import org.springframework.data.util.Pair;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -8,11 +9,9 @@ import ru.comgrid.server.model.Person;
 import ru.comgrid.server.repository.PersonRepository;
 
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.Map;
 
-public class LoginSuccessRequestHandler extends OidcUserService{
-
+class LoginSuccessRequestHandler extends OidcUserService{
     private final PersonRepository personRepository;
 
     private static final String idKey = "sub";
@@ -24,10 +23,15 @@ public class LoginSuccessRequestHandler extends OidcUserService{
     @Override
     public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException{
         var user = super.loadUser(userRequest);
+        SecurityConfig.tokenRepository.put(
+            user.toString(),
+            Pair.of(userRequest.getAccessToken().getTokenValue(), user.getAuthorities())
+        );
+
         Map<String, Object> infoAboutUser = userRequest.getIdToken().getClaims();
 
         BigDecimal id = new BigDecimal((String) infoAboutUser.get(idKey));
-        if(personRepository.existsById(id)){
+        if (personRepository.existsById(id)){
             return user;
         }
 
@@ -43,5 +47,4 @@ public class LoginSuccessRequestHandler extends OidcUserService{
 
         return user;
     }
-
 }

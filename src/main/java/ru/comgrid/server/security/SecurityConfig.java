@@ -3,19 +3,25 @@ package ru.comgrid.server.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.trace.http.HttpTraceRepository;
 import org.springframework.boot.actuate.trace.http.InMemoryHttpTraceRepository;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.core.Ordered;
+import org.springframework.data.util.Pair;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.config.oauth2.client.CommonOAuth2Provider;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
 import ru.comgrid.server.repository.PersonRepository;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Configuration
 @EnableWebSecurity
@@ -24,26 +30,51 @@ public class SecurityConfig
 
     private final PersonRepository personRepository;
 
-    public SecurityConfig(@Autowired PersonRepository personRepository){this.personRepository = personRepository;}
+    public SecurityConfig(@Autowired PersonRepository personRepository){
+        this.personRepository = personRepository;
+    }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors()
-            .and()
+        http
+            .cors()
+                .and()
             .csrf()
-            .disable()
+                .disable()
             .authorizeRequests()
-            .antMatchers("/", "/error", "/login*", "/oauth/**")
-            .permitAll()
+                .antMatchers("/", "/error", "/login*", "/oauth/**")
+                .permitAll()
             .anyRequest()
-            .authenticated()
-            .and()
+                .authenticated()
+                .and()
             .oauth2Login()
-            .and()
+                .and()
             .logout()
-            .deleteCookies("JSESSIONID")
-            .and()
-            .rememberMe();
+                .logoutSuccessUrl("https://comgrid.ru/")
+                .permitAll()
+                .logoutSuccessHandler((request, response, authentication) -> {
+                    System.out.println(authentication.getPrincipal());
+                    tokenRepository.remove(((CustomUserDetails) authentication.getPrincipal()).getUsername());
+                })
+                .and()
+            .rememberMe()
+                .alwaysRemember(true)
+                .userDetailsService(CustomUserDetails::new)
+                .and();
+    }
+
+    @Bean
+    public FilterRegistrationBean<CorsFilter> simpleCorsFilter() {
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(true);
+        config.setAllowedOrigins(List.of("http://localhost:8081", "https://comgrid.ru"));
+        config.setAllowedMethods(List.of("*"));
+        config.setAllowedHeaders(List.of("Content-Type"));
+        source.registerCorsConfiguration("/**", config);
+        FilterRegistrationBean<CorsFilter> bean = new FilterRegistrationBean<>(new CorsFilter(source));
+        bean.setOrder(Ordered.HIGHEST_PRECEDENCE);
+        return bean;
     }
 
     @Bean
@@ -55,4 +86,7 @@ public class SecurityConfig
     public OAuth2UserService<OidcUserRequest, OidcUser> loginService(){
         return new LoginSuccessRequestHandler(personRepository);
     }
+
+    static final ConcurrentHashMap<String, Pair<String, Collection<? extends GrantedAuthority>>> tokenRepository =
+        new ConcurrentHashMap<>();
 }

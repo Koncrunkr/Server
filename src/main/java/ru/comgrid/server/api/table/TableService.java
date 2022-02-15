@@ -11,10 +11,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import ru.comgrid.server.api.user.UserHelp;
-import ru.comgrid.server.model.Chat;
-import ru.comgrid.server.model.Message;
-import ru.comgrid.server.model.Person;
-import ru.comgrid.server.model.TableParticipants;
+import ru.comgrid.server.model.*;
 import ru.comgrid.server.repository.ChatParticipantsRepository;
 import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.MessageRepository;
@@ -23,7 +20,9 @@ import ru.comgrid.server.repository.PersonRepository;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Table service, that has most commonly used table targeted endpoints.
@@ -81,6 +80,7 @@ fetch(
      "/table/create",
     {
         method: "POST",
+        credentials: "include", // compulsory
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
             "name": name, // string
@@ -109,7 +109,7 @@ fetch(
         chat.setCreator(UserHelp.extractId(user));
         chat.setCreated(LocalDateTime.now(Clock.systemUTC()));
         chat = chatRepository.save(chat);
-        participantsRepository.save(new TableParticipants(chat.getId(), userId));
+        participantsRepository.save(new TableParticipants(chat.getId(), userId, EnumSet.allOf(Right.class)));
         return ResponseEntity.ok(chat.toString());
     }
 
@@ -124,8 +124,33 @@ fetch(
      *
      * <pre>
      * Example:
-     * https://comgrid.ru:8443/table/info?chatId=1224005912&includeParticipants=true
-     * https://comgrid.ru:8443/table/info?chatId=111111
+       fetch(
+           "https://comgrid.ru:8443/table/info?chatId=" + chatId + "&includeParticipants=true",
+           {
+               method: "GET",
+               credentials: "include", //compulsory
+               headers: {"Content-Type": "application/json"}
+           }
+       ).then(
+           response => response.text()
+       ).then(
+           html => console.log(html)
+       )
+
+       ###
+
+       fetch(
+           "https://comgrid.ru:8443/table/info?chatId=" + chatId,
+           {
+               method: "GET",
+               credentials: "include", // compulsory
+           headers: {"Content-Type": "application/json"}
+           }
+       ).then(
+           response => response.text()
+       ).then(
+           html => console.log(html)
+       )
      * </pre>
      *
      * @param user Authenticated user from Spring security
@@ -181,6 +206,7 @@ fetch(
      "/table/messages",
     {
         method: "POST",
+        credentials: "include", // compulsory
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
             "chatId": name, // int
@@ -210,8 +236,16 @@ fetch(
         @RequestBody MessagesRequest messagesRequest
     ){
         var userId = UserHelp.extractId(user);
-        if(!participantsRepository.existsByChatAndPerson(messagesRequest.chatId, userId))
+
+        Optional<TableParticipants> participance = participantsRepository.findById(new TableParticipant(
+            messagesRequest.chatId,
+            userId
+        ));
+        if(participance.isEmpty())
             return ResponseEntity.notFound().build();
+
+        if(!participance.get().rights().contains(Right.Read))
+            return ResponseEntity.status(403).body("Sorry, you don't have access to read messages in this chat");
 
         if(messagesRequest.amountOfMessages > maxMessagesSize)
             return ResponseEntity.badRequest().body("Amount of messages has to be not greater than " + maxMessagesSize);
