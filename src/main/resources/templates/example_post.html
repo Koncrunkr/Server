@@ -15,7 +15,7 @@
     Javascript and reload this page!</h2></noscript>
 <div id="main-content" class="container">
     <div class="row">
-        <div class="col-md-6">
+        <div class="col-md-4">
             <form class="form-inline">
                 <div class="form-group">
                     <label for="name">What is table name?</label>
@@ -36,13 +36,26 @@
                 <button id="send_table" class="btn btn-default" type="submit">Send</button>
             </form>
         </div>
-        <div class="col-md-6">
+        <div class="col-md-4">
             <form class="form-inline">
                 <div class="form-group">
                     <label for="includeChats">Do you want to include chats?</label>
                     <input type="text" id="includeChats" class="form-control" placeholder="true/false">
                 </div>
                 <button id="send_info" class="btn btn-default" type="submit">Send</button>
+            </form>
+        </div>
+        <div class="col-md-4">
+            <form class="form-inline">
+                <div class="form-group">
+                    <label for="userId">What person do you want to add?</label>
+                    <input type="text" id="userId" class="form-control" placeholder="id...">
+                </div>
+                <div class="form-group">
+                    <label for="chatId">What chat do you want it to add to?</label>
+                    <input type="text" id="chatId" class="form-control" placeholder="id...">
+                </div>
+                <button id="send_request_add_person" class="btn btn-default" type="submit">Send</button>
             </form>
         </div>
     </div>

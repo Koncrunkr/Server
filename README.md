@@ -97,7 +97,7 @@ Might return 404 if chat doesn't exist
 ### Get messages of table
 Get messages of table in given square with specified topLeft and bottomRight point.
 ```http request
-GET https://comgrid.ru:8443/table/messages
+POST https://comgrid.ru:8443/table/messages
 ```
 Params:
 
@@ -124,7 +124,20 @@ Returns Message json array consisting of Message objects:
 | senderId: integer | always   | unique sender's id                               |
 | text: string      | always   | content of message                               |
 
+### Add a participant to chat
 
+```http request
+POST https://comgrid.ru:8443/table/add_participant
+```
+Params:
+
+| param  | includes | description                       |
+|--------|----------|-----------------------------------|
+| chatId | always   | unique chat's id                  |
+| userId | always   | unique person's id to add to chat |
+
+Returns 200 response code on success. 403 response code if user doesn't have access to add users to that chat. 
+400 response code if there is no user for given userId or no chat for given chatId. 
 
 # Examples
 ### Example of GET request

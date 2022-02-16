@@ -3,6 +3,7 @@ package ru.comgrid.server.api.table;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import org.springframework.data.domain.Page;
+import ru.comgrid.server.api.message.MessagesRequest;
 import ru.comgrid.server.model.Chat;
 import ru.comgrid.server.model.Message;
 
@@ -28,7 +29,7 @@ public enum TableHelp{;
         return messages;
     }
 
-    public static boolean checkBorders(Chat chat, TableService.MessagesRequest messagesRequest){
+    public static boolean checkBorders(Chat chat, MessagesRequest messagesRequest){
         return messagesRequest.xCoordLeftTop < 0 ||
             messagesRequest.xCoordLeftTop > messagesRequest.xCoordRightBottom ||
             messagesRequest.xCoordRightBottom >= chat.getWidth() ||
@@ -37,7 +38,7 @@ public enum TableHelp{;
             messagesRequest.yCoordRightBottom >= chat.getHeight();
     }
 
-    public static boolean checkTimeBorders(TableService.MessagesRequest messagesRequest){
+    public static boolean checkTimeBorders(MessagesRequest messagesRequest){
         return messagesRequest.sinceDateTimeMillis < 0 ||
             messagesRequest.sinceDateTimeMillis > System.currentTimeMillis() ||
             messagesRequest.untilDateTimeMillis <= 0 ||

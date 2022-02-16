@@ -5,5 +5,7 @@ public enum Right{
     Write,
     OverrideOtherMessages,
     UseMedia,
-    ManageUsers
+    ManageUsers,
+    AddUsers,
+    RemoveUsers,
 }

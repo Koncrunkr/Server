@@ -68,7 +68,7 @@ public class Chat implements Serializable, Jsonable{
 
     @Getter
     @Setter
-    @Column(nullable = false)
+    @Column
     private Long lastMessageId;
 
     @Transient

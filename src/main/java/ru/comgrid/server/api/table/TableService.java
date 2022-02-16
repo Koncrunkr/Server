@@ -1,20 +1,27 @@
 package ru.comgrid.server.api.table;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.PropertyNamingStrategy;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
+import ru.comgrid.server.api.message.MessagesRequest;
+import ru.comgrid.server.api.message.MessageService;
+import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.model.*;
 import ru.comgrid.server.repository.ChatParticipantsRepository;
 import ru.comgrid.server.repository.ChatRepository;
-import ru.comgrid.server.repository.MessageRepository;
 import ru.comgrid.server.repository.PersonRepository;
 
 import java.math.BigDecimal;
@@ -22,7 +29,6 @@ import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Table service, that has most commonly used table targeted endpoints.
@@ -37,7 +43,8 @@ public class TableService{
     private final ChatRepository chatRepository;
     private final ChatParticipantsRepository participantsRepository;
     private final PersonRepository personRepository;
-    private final MessageRepository messageRepository;
+    private final MessageService messageService;
+    private final AccessService accessService;
     private final int defaultPageSize;
     private final int maxMessagesSize;
 
@@ -48,14 +55,16 @@ public class TableService{
         @Autowired ChatRepository chatRepository,
         @Autowired ChatParticipantsRepository participantsRepository,
         @Autowired PersonRepository personRepository,
-        @Autowired MessageRepository messageRepository,
+        @Autowired MessageService messageService,
+        @Autowired AccessService accessService,
         @Value("${ru.comgrid.chat.participants.default-page-size}") int defaultPageSize,
         @Value("${ru.comgrid.chat.messages.max}") int maxMessagesSize
     ){
         this.chatRepository = chatRepository;
         this.participantsRepository = participantsRepository;
         this.personRepository = personRepository;
-        this.messageRepository = messageRepository;
+        this.messageService = messageService;
+        this.accessService = accessService;
         this.defaultPageSize = defaultPageSize;
         this.maxMessagesSize = maxMessagesSize;
     }
@@ -63,38 +72,16 @@ public class TableService{
     /**
      * Create the table with specified parameters:
      * <pre>
-| param           | includes | description                |
-|-----------------|----------|----------------------------|
-| name: string    | always   | name of chat               |
-| creator: string | never    | chat's creator's unique id |
-| width: integer  | always   | width of chat in cells     |
-| height: integer | always   | height of chat in cells    |
-| avatar: string  | always   | link to avatar of chat     |
+        | param           | includes | description                |
+        |-----------------|----------|----------------------------|
+        | name: string    | always   | name of chat               |
+        | creator: string | never    | chat's creator's unique id |
+        | width: integer  | always   | width of chat in cells     |
+        | height: integer | always   | height of chat in cells    |
+        | avatar: string  | always   | link to avatar of chat     |
      * </pre>
      * <i>Note: you should not include creator's id, because authenticated user's will be used</i>
      *
-     * <pre>
-Example:
-//js
-fetch(
-     "/table/create",
-    {
-        method: "POST",
-        credentials: "include", // compulsory
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            "name": name, // string
-            "avatar": avatar, // string link
-            "width": width, // int
-            "height": height // int
-        })
-    }
-).then(
-    response => response.text()
-).then(
-    html => console.log(html)
-)
-     * </pre>
      * @param user implementation specific user info
      * @param chat chat object accommodating all parameters
      * @return Created {@link Chat} object in json format
@@ -120,37 +107,6 @@ fetch(
        |------------------------------|----------|-----------------------------------------------|
        | id: integer                  | always   | unique id of table(chat)                      |
        | includeParticipants: boolean | optional | whether to include participants({@link Person}) or not |
-     * </pre>
-     *
-     * <pre>
-     * Example:
-       fetch(
-           "https://comgrid.ru:8443/table/info?chatId=" + chatId + "&includeParticipants=true",
-           {
-               method: "GET",
-               credentials: "include", //compulsory
-               headers: {"Content-Type": "application/json"}
-           }
-       ).then(
-           response => response.text()
-       ).then(
-           html => console.log(html)
-       )
-
-       ###
-
-       fetch(
-           "https://comgrid.ru:8443/table/info?chatId=" + chatId,
-           {
-               method: "GET",
-               credentials: "include", // compulsory
-           headers: {"Content-Type": "application/json"}
-           }
-       ).then(
-           response => response.text()
-       ).then(
-           html => console.log(html)
-       )
      * </pre>
      *
      * @param user Authenticated user from Spring security
@@ -199,32 +155,6 @@ fetch(
      | sinceDateTimeMillis | optional | Minimum time of messages to include(default no limit)                        |
      | untilDateTimeMillis | optional | Maximum time of messages to include(default no limit)                        |
      * </pre>
-     * <pre>
-Example:
-// js
-fetch(
-     "/table/messages",
-    {
-        method: "POST",
-        credentials: "include", // compulsory
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({
-            "chatId": name, // int
-            "xCoordLeftTop": square.topLeft.x, // int
-            "yCoordLeftTop": square.topLeft.y, // int
-            "xCoordRightBottom": square.rightBottom.x, // int
-            "yCoordRightBottom": square.rightBottom.y, // int
-            "amountOfMessages": amountOfMessages, // int
-            "sinceDateTimeMillis": since.toMillis(), // int
-            "untilDateTimeMillis": until.toMillis() // int
-        })
-    }
-).then(
-    response => response.text()
-).then(
-    html => console.log(html)
-)
-     * </pre>
      * @param user Authenticated user from Spring security
      * @param messagesRequest chat object accommodating all parameters
      * @return {@link Message} list in json format
@@ -237,14 +167,7 @@ fetch(
     ){
         var userId = UserHelp.extractId(user);
 
-        Optional<TableParticipants> participance = participantsRepository.findById(new TableParticipant(
-            messagesRequest.chatId,
-            userId
-        ));
-        if(participance.isEmpty())
-            return ResponseEntity.notFound().build();
-
-        if(!participance.get().rights().contains(Right.Read))
+        if(!accessService.hasAccessTo(userId, messagesRequest.chatId, Right.Read))
             return ResponseEntity.status(403).body("Sorry, you don't have access to read messages in this chat");
 
         if(messagesRequest.amountOfMessages > maxMessagesSize)
@@ -266,92 +189,56 @@ fetch(
 
         if(messagesRequest.sinceDateTimeMillis == 0 && messagesRequest.untilDateTimeMillis == 0){
             // both not specified, do fast get last messages
-            return getLastMessages(messagesRequest);
+            return messageService.getLastMessages(messagesRequest);
         }else if(messagesRequest.sinceDateTimeMillis == 0){
             // only until is specified
-            return getMessagesUntil(messagesRequest);
+            return messageService.getMessagesUntil(messagesRequest);
         }else if(messagesRequest.untilDateTimeMillis == 0){
             // only since is specified
-            return getMessagesSince(messagesRequest);
+            return messageService.getMessagesSince(messagesRequest);
         }else{
             //specified both since and until
-            return getMessagesBetween(messagesRequest);
+            return messageService.getMessagesBetween(messagesRequest);
         }
     }
 
+    @PostMapping("/add_participant")
+    public ResponseEntity<String> addParticipant(
+        @AuthenticationPrincipal OAuth2User user,
+        @RequestBody AddParticipantRequest addParticipantRequest
+    ){
+        var adminUserId = UserHelp.extractId(user);
+        var newUserId = new BigDecimal(addParticipantRequest.userId);
 
-    private ResponseEntity<String> getLastMessages(MessagesRequest messagesRequest){
-        Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenOrderByTimeDesc(
-            messagesRequest.chatId, messagesRequest.xCoordLeftTop, messagesRequest.xCoordRightBottom,
-            messagesRequest.yCoordLeftTop, messagesRequest.yCoordRightBottom,
-            Pageable.ofSize(messagesRequest.amountOfMessages)
-        );
+        if (!accessService.hasAccessTo(adminUserId, addParticipantRequest.chatId, Right.AddUsers)){
+            return ResponseEntity.status(403).body("You don't have access to add participants to this chat");
+        }
 
-        return ResponseEntity.ok(TableHelp.toJson(messages).toString());
-    }
+        if(!personRepository.existsById(newUserId)){
+            return ResponseEntity.badRequest().body("User is not found");
+        }
 
-    private ResponseEntity<String> getMessagesUntil(MessagesRequest messagesRequest){
-        LocalDateTime until = TableHelp.toDateTime(messagesRequest.untilDateTimeMillis);
+        if(participantsRepository.existsByChatAndPerson(addParticipantRequest.chatId, newUserId)){
+            return ResponseEntity.badRequest().body("User is already a participant of this chat");
+        }
 
-        Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeBeforeOrderByTimeDesc(
-            messagesRequest.chatId,
-            messagesRequest.xCoordLeftTop,
-            messagesRequest.xCoordRightBottom,
-            messagesRequest.yCoordLeftTop,
-            messagesRequest.yCoordRightBottom,
-            until,
-            Pageable.ofSize(messagesRequest.amountOfMessages)
-        );
+        participantsRepository.save(new TableParticipants(
+            addParticipantRequest.chatId,
+            newUserId,
+            EnumSet.of(Right.Read),
+            LocalDateTime.now()
+        ));
 
-        return ResponseEntity.ok(TableHelp.toJson(messages).toString());
-    }
-
-    private ResponseEntity<String> getMessagesSince(MessagesRequest messagesRequest){
-        LocalDateTime since = TableHelp.toDateTime(messagesRequest.sinceDateTimeMillis);
-
-        Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeAfterOrderByTimeDesc(
-            messagesRequest.chatId,
-            messagesRequest.xCoordLeftTop,
-            messagesRequest.xCoordRightBottom,
-            messagesRequest.yCoordLeftTop,
-            messagesRequest.yCoordRightBottom,
-            since,
-            Pageable.ofSize(messagesRequest.amountOfMessages)
-        );
-
-        return ResponseEntity.ok(TableHelp.toJson(messages).toString());
-    }
-
-    private ResponseEntity<String> getMessagesBetween(MessagesRequest messagesRequest){
-        LocalDateTime since = TableHelp.toDateTime(messagesRequest.sinceDateTimeMillis);
-        LocalDateTime until = TableHelp.toDateTime(messagesRequest.untilDateTimeMillis);
-
-        Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeBetweenOrderByTimeDesc(
-            messagesRequest.chatId,
-            messagesRequest.xCoordLeftTop,
-            messagesRequest.xCoordRightBottom,
-            messagesRequest.yCoordLeftTop,
-            messagesRequest.yCoordRightBottom,
-            since,
-            until,
-            Pageable.ofSize(messagesRequest.amountOfMessages)
-        );
-
-        return ResponseEntity.ok(TableHelp.toJson(messages).toString());
+        return ResponseEntity.ok("User was added successfully");
     }
 
     @AllArgsConstructor
     @NoArgsConstructor
-    static class MessagesRequest{
+    @Getter
+    @Setter
+    public static class AddParticipantRequest{
         long chatId;
-        int xCoordLeftTop;
-        int yCoordLeftTop;
-        int xCoordRightBottom;
-        int yCoordRightBottom;
-        int amountOfMessages;
-        long sinceDateTimeMillis;
-        long untilDateTimeMillis;
-
+        String userId;
     }
 }
 

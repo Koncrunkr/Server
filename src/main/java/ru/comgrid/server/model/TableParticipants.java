@@ -25,10 +25,22 @@ public class TableParticipants implements Serializable, Persistable<TablePartici
     @Getter
     private BigDecimal person;
 
-    @Transient
     private EnumSet<Right> rights;
 
     private LocalDateTime lastTimeSeen;
+
+    @Column
+    @SneakyThrows
+    public long getRights(){
+        return rightsField.getLong(rights);
+    }
+
+
+    @SneakyThrows
+    public void setRights(long rights){
+        this.rights = EnumSet.noneOf(Right.class);
+        rightsField.setLong(this.rights, rights);
+    }
 
     @Transient
     public EnumSet<Right> rights(){
@@ -53,14 +65,5 @@ public class TableParticipants implements Serializable, Persistable<TablePartici
     private static Field getField(){
         return EnumSet.noneOf(Right.class).getClass().getDeclaredField("elements");
     }
-    @Column
-    @SneakyThrows
-    public long getRights(){
-        return rightsField.getLong(rights);
-    }
-    @SneakyThrows
-    public void setRights(long rights){
-        this.rights = EnumSet.noneOf(Right.class);
-        rightsField.setLong(this.rights, rights);
-    }
+
 }

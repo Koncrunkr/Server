@@ -4,6 +4,7 @@ function postCreateTable(){
         "/table/create",
         {
             method: "POST",
+            credentials: "include",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 "name": $("#name").val(),
@@ -24,6 +25,7 @@ function getUserInfo(){
         "/user/info?includeChats=" + ($("#includeChats").val() === "true"),
         {
             method: "GET",
+            credentials: "include",
             headers: {"Content-Types": "application/json"}
         }
     ).then(
@@ -33,10 +35,30 @@ function getUserInfo(){
     )
 }
 
+function sendRequestAddPerson() {
+    fetch(
+        "/table/participant",
+        {
+            method: "POST",
+            credentials: "include",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                "chatId": parseInt($("#chatId").val()),
+                "userId": $("#userId").val(),
+            })
+        }
+    ).then(
+        respone => {
+            $("#responses").append("<tr><td>" + "Status: " + respone.status + ", " + respone.text() + "</td></tr>");
+        }
+    )
+}
+
 $(function (){
     $("form").on('submit', function (e) {
         e.preventDefault();
     });
     $("#send_table").click(function() { postCreateTable(); });
     $("#send_info").click(function() { getUserInfo(); });
+    $("#send_request_add_person").click(function () {sendRequestAddPerson()})
 })
