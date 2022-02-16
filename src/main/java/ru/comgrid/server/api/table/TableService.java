@@ -109,7 +109,7 @@ fetch(
         chat.setCreator(UserHelp.extractId(user));
         chat.setCreated(LocalDateTime.now(Clock.systemUTC()));
         chat = chatRepository.save(chat);
-        participantsRepository.save(new TableParticipants(chat.getId(), userId, EnumSet.allOf(Right.class)));
+        participantsRepository.save(new TableParticipants(chat.getId(), userId, EnumSet.allOf(Right.class), LocalDateTime.now(Clock.systemUTC())));
         return ResponseEntity.ok(chat.toString());
     }
 

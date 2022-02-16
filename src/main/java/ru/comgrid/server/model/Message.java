@@ -8,6 +8,19 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+/**
+ * <pre>
+| field             | includes | description                                      |
+|-------------------|----------|--------------------------------------------------|
+| id: integer       | always   | unique id of message                             |
+| x: integer        | always   | x coordinate of message                          |
+| y: integer        | always   | y coordinate of message                          |
+| chatId: integer   | always   | chatId this message corresponds to               |
+| time: integer     | always   | time when this message was sent(since 1.01.1970) |
+| senderId: integer | always   | unique sender's id                               |
+| text: string      | always   | content of message                               |
+ * </pre>
+ */
 @Entity
 public class Message implements Serializable {
     @Id

@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import ru.comgrid.server.model.Person;
@@ -90,6 +91,14 @@ public class UserService{
 
         return ResponseEntity.ok(person.toString());
     }
+
+    @GetMapping("/login")
+    public ResponseEntity<String> getUserInfo(){
+        return SecurityContextHolder.getContext().getAuthentication() != null &&
+            SecurityContextHolder.getContext().getAuthentication().isAuthenticated() ?
+            ResponseEntity.ok().build() : ResponseEntity.status(401).build();
+    }
+
 //
 //    @GetMapping("/chats")
 //    public ResponseEntity<String> getUserChats(){

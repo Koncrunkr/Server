@@ -42,7 +42,7 @@ public class SecurityConfig
             .csrf()
                 .disable()
             .authorizeRequests()
-                .antMatchers("/", "/error", "/login*", "/oauth/**")
+                .antMatchers("/", "/error", "/login*", "/oauth/**", "/user/login")
                 .permitAll()
             .anyRequest()
                 .authenticated()
