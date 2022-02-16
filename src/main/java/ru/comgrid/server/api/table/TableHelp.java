@@ -41,7 +41,7 @@ public enum TableHelp{;
     public static boolean checkTimeBorders(MessagesRequest messagesRequest){
         return messagesRequest.sinceDateTimeMillis < 0 ||
             messagesRequest.sinceDateTimeMillis > System.currentTimeMillis() ||
-            messagesRequest.untilDateTimeMillis <= 0 ||
+            messagesRequest.untilDateTimeMillis < 0 ||
             messagesRequest.untilDateTimeMillis > System.currentTimeMillis();
     }
 }

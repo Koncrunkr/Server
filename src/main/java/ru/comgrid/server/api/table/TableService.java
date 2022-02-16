@@ -173,8 +173,11 @@ public class TableService{
         if(messagesRequest.amountOfMessages > maxMessagesSize)
             return ResponseEntity.badRequest().body("Amount of messages has to be not greater than " + maxMessagesSize);
 
-        if(messagesRequest.amountOfMessages <= 0)
+        if(messagesRequest.amountOfMessages < 0)
             return ResponseEntity.badRequest().body("Amount of messages has to be positive");
+
+        if(messagesRequest.amountOfMessages == 0)
+            messagesRequest.amountOfMessages = 50;
 
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         Chat chat = chatRepository.findById(messagesRequest.chatId).get();

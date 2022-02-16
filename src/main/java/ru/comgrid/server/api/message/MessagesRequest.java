@@ -11,7 +11,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MessagesRequest{
-
     public long chatId;
     public int xCoordLeftTop;
     public int yCoordLeftTop;
@@ -20,5 +19,4 @@ public class MessagesRequest{
     public int amountOfMessages;
     public long sinceDateTimeMillis;
     public long untilDateTimeMillis;
-
 }

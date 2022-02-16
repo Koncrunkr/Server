@@ -25,7 +25,9 @@ public class MessageService{
             Pageable.ofSize(messagesRequest.amountOfMessages)
         );
 
-        return ResponseEntity.ok(TableHelp.toJson(messages).toString());
+        String body = TableHelp.toJson(messages).toString();
+        System.out.println(body);
+        return ResponseEntity.ok(body);
     }
 
     public ResponseEntity<String> getMessagesUntil(MessagesRequest messagesRequest){
