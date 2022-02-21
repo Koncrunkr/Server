@@ -29,7 +29,23 @@ public enum TableHelp{;
         return messages;
     }
 
+    /**
+     * This method WILL change the {@code messagesRequest}
+     * if it contains no borders(they are set to 0)
+     * @param chat corresponding chat
+     * @param messagesRequest request info containing borders
+     * @return true if borders are out of bounds, false if everything's ok
+     */
     public static boolean checkBorders(Chat chat, MessagesRequest messagesRequest){
+        if(messagesRequest.xCoordLeftTop == 0 &&
+            messagesRequest.yCoordLeftTop == 0 &&
+            messagesRequest.xCoordRightBottom == 0 &&
+            messagesRequest.yCoordRightBottom == 0
+        ){
+            messagesRequest.xCoordRightBottom = chat.getWidth() - 1;
+            messagesRequest.yCoordRightBottom = chat.getHeight() - 1;
+            return true;
+        }
         return messagesRequest.xCoordLeftTop < 0 ||
             messagesRequest.xCoordLeftTop > messagesRequest.xCoordRightBottom ||
             messagesRequest.xCoordRightBottom >= chat.getWidth() ||

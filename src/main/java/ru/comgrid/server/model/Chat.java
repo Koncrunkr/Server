@@ -42,6 +42,7 @@ public class Chat implements Serializable, Jsonable{
     private String name;
 
     @Column(precision = 40, nullable = false)
+//    @ManyToOne(targetEntity = Person.class, optional = false)
     @Getter
     @Setter
     private BigDecimal creator;
@@ -68,6 +69,7 @@ public class Chat implements Serializable, Jsonable{
 
     @Getter
     @Setter
+//    @OneToOne(targetEntity = Message.class)
     @Column
     private Long lastMessageId;
 

@@ -43,6 +43,7 @@ public class Message implements Serializable {
     @Getter
     @Setter
     @Column(nullable = false)
+//    @ManyToOne(targetEntity = Chat.class, optional = false)
     private Long chatId;
 
     @Getter
@@ -52,6 +53,7 @@ public class Message implements Serializable {
 
     @Getter
     @Column(nullable = false, precision = 40)
+//    @ManyToOne(targetEntity = Person.class, optional = false)
     @Setter
     private BigDecimal senderId;
 

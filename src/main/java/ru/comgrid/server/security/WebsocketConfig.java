@@ -11,11 +11,11 @@ import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBr
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import ru.comgrid.server.security.destination.UserSubscriptionInterceptor;
 
+import java.util.HashMap;
+
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebsocketConfig extends AbstractSecurityWebSocketMessageBrokerConfigurer{
-
-
     private final UserSubscriptionInterceptor userSubscriptionInterceptor;
 
     public WebsocketConfig(@Autowired UserSubscriptionInterceptor userSubscriptionInterceptor){this.userSubscriptionInterceptor = userSubscriptionInterceptor;}
@@ -23,8 +23,8 @@ public class WebsocketConfig extends AbstractSecurityWebSocketMessageBrokerConfi
     @Override
     protected void configureInbound(MessageSecurityMetadataSourceRegistry messages){
         messages
-            .simpDestMatchers("/app/*").authenticated()
-            .simpSubscribeDestMatchers("/app/*").authenticated();
+            .simpDestMatchers("/connection/*").authenticated()
+            .simpSubscribeDestMatchers("/connection/*").authenticated();
     }
 
     @Override
@@ -34,12 +34,12 @@ public class WebsocketConfig extends AbstractSecurityWebSocketMessageBrokerConfi
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry){
-        registry.setApplicationDestinationPrefixes("/app");
+        registry.setApplicationDestinationPrefixes("/connection");
     }
 
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry){
-        registry.addEndpoint("/messaging").withSockJS();
+        registry.addEndpoint("/websocket").withSockJS();
     }
 
     @Override

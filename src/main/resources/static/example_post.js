@@ -49,7 +49,34 @@ function sendRequestAddPerson() {
         }
     ).then(
         respone => {
-            $("#responses").append("<tr><td>" + "Status: " + respone.status + ", " + respone.text() + "</td></tr>");
+            respone.text().then(
+                text => $("#responses").append("<tr><td>" + "Status: " + respone.status + ", " + text + "</td></tr>")
+            )
+
+        }
+    )
+}
+
+function sendRequestMessages() {
+    fetch(
+        "/table/messages",
+        {
+            method: "POST",
+            credentials: "include",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                chatId: parseInt($("#chatMessagingId").val()),
+                xCoordLeftTop: parseInt($("#xCoordLeftTop").val()),
+                yCoordLeftTop: parseInt($("#yCoordLeftTop").val()),
+                xCoordRightBottom: parseInt($("#xCoordRightBottom").val()),
+                yCoordRightBottom: parseInt($("#yCoordRightBottom").val()),
+            })
+        }
+    ).then(
+        response => {
+            response.text().then(
+                text => $("#responses").append("<tr><td>" + "Status: " + response.status + ", " + text + "</td></tr>")
+            )
         }
     )
 }
@@ -61,4 +88,5 @@ $(function (){
     $("#send_table").click(function() { postCreateTable(); });
     $("#send_info").click(function() { getUserInfo(); });
     $("#send_request_add_person").click(function () {sendRequestAddPerson()})
+    $("#send_request_messages").click(function () {sendRequestMessages()})
 })

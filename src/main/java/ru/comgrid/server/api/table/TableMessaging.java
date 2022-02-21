@@ -69,7 +69,7 @@ public class TableMessaging{
         chatMessage.setTime(LocalDateTime.now(Clock.systemUTC()));
         Message message = messageRepository.save(chatMessage);
 
-        messagingTemplate.convertAndSend("/app/table/queue/" + chatMessage.getChatId().toString(), message);
+        messagingTemplate.convertAndSend("/connection/table/queue/" + chatMessage.getChatId().toString(), message);
     }
 
     @AllArgsConstructor

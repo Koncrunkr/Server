@@ -19,10 +19,15 @@ import ru.comgrid.server.api.message.MessagesRequest;
 import ru.comgrid.server.api.message.MessageService;
 import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
+import ru.comgrid.server.exception.IllegalAccessException;
+import ru.comgrid.server.exception.OutOfBoundsRequestException;
+import ru.comgrid.server.exception.TooBigRequestException;
+import ru.comgrid.server.exception.WrongRequestException;
 import ru.comgrid.server.model.*;
 import ru.comgrid.server.repository.ChatParticipantsRepository;
 import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.PersonRepository;
+import ru.comgrid.server.util.EnumSet0;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -96,7 +101,7 @@ public class TableService{
         chat.setCreator(UserHelp.extractId(user));
         chat.setCreated(LocalDateTime.now(Clock.systemUTC()));
         chat = chatRepository.save(chat);
-        participantsRepository.save(new TableParticipants(chat.getId(), userId, EnumSet.allOf(Right.class), LocalDateTime.now(Clock.systemUTC())));
+        participantsRepository.save(new TableParticipants(chat.getId(), userId, EnumSet0.allOf(Right.class), LocalDateTime.now(Clock.systemUTC())));
         return ResponseEntity.ok(chat.toString());
     }
 
@@ -146,11 +151,11 @@ public class TableService{
      * <pre>
      | param               | includes | description                                                                  |
      |---------------------|----------|------------------------------------------------------------------------------|
-     | chatId              | always   | unique chatId                                                                |
-     | xCoordLeftTop       | always   | Top left point of square's x coord                                           |
-     | yCoordLeftTop       | always   | Top left point of square's y coord                                           |
-     | xCoordRightBottom   | always   | Bottom right point of square's x coord                                       |
-     | yCoordRightBottom   | always   | Bottom right point of square's y coord                                       |
+     | chatId              | optional | unique chatId                                                                |
+     | xCoordLeftTop       | optional | Top left point of square's x coord(default 0)                                |
+     | yCoordLeftTop       | optional | Top left point of square's y coord(default 0)                                |
+     | xCoordRightBottom   | optional | Bottom right point of square's x coord(default width-1)                      |
+     | yCoordRightBottom   | optional | Bottom right point of square's y coord(default height-1)                     |
      | amountOfMessages    | optional | Amount of messages that will be loaded(maximum available 100, default is 50) |
      | sinceDateTimeMillis | optional | Minimum time of messages to include(default no limit)                        |
      | untilDateTimeMillis | optional | Maximum time of messages to include(default no limit)                        |
@@ -168,30 +173,30 @@ public class TableService{
         var userId = UserHelp.extractId(user);
 
         if(!accessService.hasAccessTo(userId, messagesRequest.chatId, Right.Read))
-            return ResponseEntity.status(403).body("Sorry, you don't have access to read messages in this chat");
+            throw new IllegalAccessException("to read messages in this chat");
 
         if(messagesRequest.amountOfMessages > maxMessagesSize)
-            return ResponseEntity.badRequest().body("Amount of messages has to be not greater than " + maxMessagesSize);
+            throw new TooBigRequestException("messages", maxMessagesSize);
 
         if(messagesRequest.amountOfMessages < 0)
-            return ResponseEntity.badRequest().body("Amount of messages has to be positive");
+            throw new WrongRequestException("Amount of messages has to be positive");
 
         if(messagesRequest.amountOfMessages == 0)
-            messagesRequest.amountOfMessages = 50;
+            messagesRequest.amountOfMessages = defaultPageSize;
 
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         Chat chat = chatRepository.findById(messagesRequest.chatId).get();
 
         if(TableHelp.checkBorders(chat, messagesRequest)){
-            return ResponseEntity.badRequest().body("You are out of borders");
+            throw new OutOfBoundsRequestException();
         }
 
         if(TableHelp.checkTimeBorders(messagesRequest)){
-            return ResponseEntity.badRequest().body("You can't specify neither negative time nor future");
+            throw new OutOfBoundsRequestException("You can't specify neither negative time nor future");
         }
 
         if(messagesRequest.sinceDateTimeMillis == 0 && messagesRequest.untilDateTimeMillis == 0){
-            // both not specified, do fast get last messages
+            // neither since nor until are specified, do fast getLastMessages
             return messageService.getLastMessages(messagesRequest);
         }else if(messagesRequest.sinceDateTimeMillis == 0){
             // only until is specified
@@ -200,7 +205,7 @@ public class TableService{
             // only since is specified
             return messageService.getMessagesSince(messagesRequest);
         }else{
-            //specified both since and until
+            // specified both since and until
             return messageService.getMessagesBetween(messagesRequest);
         }
     }
@@ -228,7 +233,7 @@ public class TableService{
         participantsRepository.save(new TableParticipants(
             addParticipantRequest.chatId,
             newUserId,
-            EnumSet.of(Right.Read),
+            EnumSet0.of(Right.Read),
             LocalDateTime.now()
         ));
 

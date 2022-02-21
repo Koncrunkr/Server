@@ -13,13 +13,13 @@ function setConnected(connected) {
 }
 
 function connect() {
-    const socket = new SockJS('/messaging');
+    const socket = new SockJS('/websocket');
     stompClient = Stomp.over(socket);
     stompClient.connect({}, function (frame) {
         setConnected(true);
         $("#stomp").append("<tr><td>" + frame + "</td></tr>")
         const chatId = $("#chatId").val();
-        stompClient.subscribe("/app/table/queue/" + chatId, function (greeting) {
+        stompClient.subscribe("/connection/table/queue/" + chatId, function (greeting) {
             showMessage(greeting.body);
         });
     });
@@ -34,7 +34,7 @@ function disconnect() {
 }
 
 function sendMessage() {
-    stompClient.send("/app/table", {},
+    stompClient.send("/connection/table", {},
         JSON.stringify(
             {
                 x: $("#xCoord").val(),

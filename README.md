@@ -101,28 +101,28 @@ POST https://comgrid.ru:8443/table/messages
 ```
 Params:
 
-| param               | includes | description                                                                  |
-|---------------------|----------|------------------------------------------------------------------------------|
-| chatId              | always   | unique chatId                                                                |
-| xCoordLeftTop       | always   | Top left point of square's x coord                                           |
-| yCoordLeftTop       | always   | Top left point of square's y coord                                           |
-| xCoordRightBottom   | always   | Bottom right point of square's x coord                                       |
-| yCoordRightBottom   | always   | Bottom right point of square's y coord                                       |
-| amountOfMessages    | optional | Amount of messages that will be loaded(maximum available 100, default is 50) |
-| sinceDateTimeMillis | optional | Minimum time of messages to include(default no limit)                        |
-| untilDateTimeMillis | optional | Maximum time of messages to include(default no limit)                        |
+| param                         | includes | description                                                                  |
+|-------------------------------|----------|------------------------------------------------------------------------------|
+| chatId: integer               | always   | unique chatId                                                                |
+| xCoordLeftTop: integer        | always   | Top left point of square's x coord                                           |
+| yCoordLeftTop: integer        | always   | Top left point of square's y coord                                           |
+| xCoordRightBottom: integer    | always   | Bottom right point of square's x coord                                       |
+| yCoordRightBottom: integer    | always   | Bottom right point of square's y coord                                       |
+| amountOfMessages: integer     | optional | Amount of messages that will be loaded(maximum available 100, default is 50) |
+| sinceDateTimeMillis: integer  | optional | Minimum time of messages to include(default no limit)                        |
+| untilDateTimeMillis: integer  | optional | Maximum time of messages to include(default no limit)                        |
 
 Returns Message json array consisting of Message objects:
 
-| field             | includes | description                                      |
-|-------------------|----------|--------------------------------------------------|
-| id: integer       | always   | unique id of message                             |
-| x: integer        | always   | x coordinate of message                          |
-| y: integer        | always   | y coordinate of message                          |
-| chatId: integer   | always   | chatId this message corresponds to               |
-| time: integer     | always   | time when this message was sent(since 1.01.1970) |
-| senderId: integer | always   | unique sender's id                               |
-| text: string      | always   | content of message                               |
+| field            | includes | description                                      |
+|------------------|----------|--------------------------------------------------|
+| id: integer      | always   | unique id of message                             |
+| x: integer       | always   | x coordinate of message                          |
+| y: integer       | always   | y coordinate of message                          |
+| chatId: integer  | always   | chatId this message corresponds to               |
+| time: integer    | always   | time when this message was sent(since 1.01.1970) |
+| senderId: string | always   | unique sender's id                               |
+| text: string     | always   | content of message                               |
 
 ### Add a participant to chat
 
@@ -131,10 +131,10 @@ POST https://comgrid.ru:8443/table/add_participant
 ```
 Params:
 
-| param  | includes | description                       |
-|--------|----------|-----------------------------------|
-| chatId | always   | unique chat's id                  |
-| userId | always   | unique person's id to add to chat |
+| param           | includes | description                       |
+|-----------------|----------|-----------------------------------|
+| chatId: integer | always   | unique chat's id                  |
+| userId: string  | always   | unique person's id to add to chat |
 
 Returns 200 response code on success. 403 response code if user doesn't have access to add users to that chat. 
 400 response code if there is no user for given userId or no chat for given chatId. 
