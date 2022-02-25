@@ -1,8 +1,5 @@
 package ru.comgrid.server.api.table;
 
-import com.fasterxml.jackson.databind.PropertyNamingStrategies;
-import com.fasterxml.jackson.databind.PropertyNamingStrategy;
-import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,28 +8,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
+import ru.comgrid.server.api.message.MessageUnionRequest;
 import ru.comgrid.server.api.message.MessagesRequest;
 import ru.comgrid.server.api.message.MessageService;
 import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
-import ru.comgrid.server.exception.IllegalAccessException;
-import ru.comgrid.server.exception.OutOfBoundsRequestException;
-import ru.comgrid.server.exception.TooBigRequestException;
-import ru.comgrid.server.exception.WrongRequestException;
 import ru.comgrid.server.model.*;
 import ru.comgrid.server.repository.ChatParticipantsRepository;
 import ru.comgrid.server.repository.ChatRepository;
+import ru.comgrid.server.repository.MessageUnionRepository;
 import ru.comgrid.server.repository.PersonRepository;
 import ru.comgrid.server.util.EnumSet0;
 
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.EnumSet;
 import java.util.List;
 
 /**
@@ -50,6 +44,7 @@ public class TableService{
     private final PersonRepository personRepository;
     private final MessageService messageService;
     private final AccessService accessService;
+    private final MessageUnionRepository messageUnionRepository;
     private final int defaultPageSize;
     private final int maxMessagesSize;
 
@@ -62,6 +57,7 @@ public class TableService{
         @Autowired PersonRepository personRepository,
         @Autowired MessageService messageService,
         @Autowired AccessService accessService,
+        @Autowired MessageUnionRepository messageUnionRepository,
         @Value("${ru.comgrid.chat.participants.default-page-size}") int defaultPageSize,
         @Value("${ru.comgrid.chat.messages.max}") int maxMessagesSize
     ){
@@ -70,6 +66,7 @@ public class TableService{
         this.personRepository = personRepository;
         this.messageService = messageService;
         this.accessService = accessService;
+        this.messageUnionRepository = messageUnionRepository;
         this.defaultPageSize = defaultPageSize;
         this.maxMessagesSize = maxMessagesSize;
     }
@@ -93,7 +90,7 @@ public class TableService{
      */
     @PostMapping("/create")
     public ResponseEntity<String> createTable(
-        @AuthenticationPrincipal OAuth2User user,
+        @AuthenticationPrincipal(errorOnInvalidType = true) OAuth2User user,
         @RequestBody Chat chat
     ){
         var userId = UserHelp.extractId(user);
@@ -173,13 +170,16 @@ public class TableService{
         var userId = UserHelp.extractId(user);
 
         if(!accessService.hasAccessTo(userId, messagesRequest.chatId, Right.Read))
-            throw new IllegalAccessException("to read messages in this chat");
+//            throw new IllegalAccessException("to read messages in this chat");
+            return ResponseEntity.status(403).body("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 403, \"reason\": \"Sorry, you don't have access to read messages in this chat\"}");
 
         if(messagesRequest.amountOfMessages > maxMessagesSize)
-            throw new TooBigRequestException("messages", maxMessagesSize);
+//            throw new TooBigRequestException("messages", maxMessagesSize);
+            return ResponseEntity.badRequest().body("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 400, \"reason\": \"Amount of messages has to be not greater than " + maxMessagesSize + "\"}");
 
         if(messagesRequest.amountOfMessages < 0)
-            throw new WrongRequestException("Amount of messages has to be positive");
+//            throw new WrongRequestException("Amount of messages has to be positive");
+            return ResponseEntity.badRequest().body("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 400, \"reason\": \"Amount of messages has to be positive\"}");
 
         if(messagesRequest.amountOfMessages == 0)
             messagesRequest.amountOfMessages = defaultPageSize;
@@ -188,11 +188,13 @@ public class TableService{
         Chat chat = chatRepository.findById(messagesRequest.chatId).get();
 
         if(TableHelp.checkBorders(chat, messagesRequest)){
-            throw new OutOfBoundsRequestException();
+//            throw new OutOfBoundsRequestException();
+            return ResponseEntity.badRequest().body("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 400, \"reason\": \"You are out of borders\"}");
         }
 
         if(TableHelp.checkTimeBorders(messagesRequest)){
-            throw new OutOfBoundsRequestException("You can't specify neither negative time nor future");
+//            throw new OutOfBoundsRequestException("You can't specify neither negative time nor future");
+            return ResponseEntity.badRequest().body("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 400, \"reason\": \"You can't specify neither negative time nor future\"}");
         }
 
         if(messagesRequest.sinceDateTimeMillis == 0 && messagesRequest.untilDateTimeMillis == 0){
@@ -237,8 +239,42 @@ public class TableService{
             LocalDateTime.now()
         ));
 
-        return ResponseEntity.ok("User was added successfully");
+        return ResponseEntity.ok("{response: \"User was added successfully\"}");
     }
+
+    @GetMapping("/cell_unions")
+    public ResponseEntity<String> cellUnions(
+        @AuthenticationPrincipal OAuth2User user,
+        @RequestParam long chatId,
+        @RequestParam(required = false, defaultValue = "0") int xCoordLeftTop,
+        @RequestParam(required = false, defaultValue = "0") int yCoordLeftTop,
+        @RequestParam(required = false, defaultValue = "0") int xCoordRightBottom,
+        @RequestParam(required = false, defaultValue = "0") int yCoordRightBottom
+    ){
+        var userId = UserHelp.extractId(user);
+
+        if(!accessService.hasAccessTo(userId, chatId, Right.Read)){
+            return ResponseEntity.status(403).body("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 403, \"reason\": \"Sorry, you don't have access to read messages in this chat\"}");
+        }
+
+        @SuppressWarnings("OptionalGetWithoutIsPresent")
+        Chat chat = chatRepository.findById(chatId).get();
+
+        if(TableHelp.checkBorders(chat, new MessageUnionRequest(chatId, xCoordLeftTop, yCoordLeftTop, xCoordRightBottom, yCoordRightBottom))){
+            return ResponseEntity.badRequest().body("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 400, \"reason\": \"You are out of borders\"}");
+        }
+
+        return ResponseEntity.ok(
+            TableHelp.toJson(messageUnionRepository.findAllByChat(
+                chatId,
+                xCoordLeftTop,
+                yCoordLeftTop,
+                xCoordRightBottom,
+                yCoordRightBottom,
+                Pageable.ofSize(defaultPageSize)
+            )).toString());
+    }
+
 
     @AllArgsConstructor
     @NoArgsConstructor

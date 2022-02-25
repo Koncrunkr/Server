@@ -37,7 +37,7 @@ function getUserInfo(){
 
 function sendRequestAddPerson() {
     fetch(
-        "/table/participant",
+        "/table/add_participant",
         {
             method: "POST",
             credentials: "include",

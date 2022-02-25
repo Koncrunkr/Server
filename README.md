@@ -129,6 +129,9 @@ Returns Message json array consisting of Message objects:
 ```http request
 POST https://comgrid.ru:8443/table/add_participant
 ```
+
+Add participant to chat
+
 Params:
 
 | param           | includes | description                       |
@@ -136,8 +139,37 @@ Params:
 | chatId: integer | always   | unique chat's id                  |
 | userId: string  | always   | unique person's id to add to chat |
 
-Returns 200 response code on success. 403 response code if user doesn't have access to add users to that chat. 
-400 response code if there is no user for given userId or no chat for given chatId. 
+Returns 200 response code on success. 403 response code if user doesn't have access to add users to that chat.
+400 response code if there is no user for given userId or no chat for given chatId.
+
+### Get all cell unions
+
+```http request
+POST https://comgrid.ru:8443/table/cell_unions
+```
+
+Get cell unions of chat in square
+
+Params:
+
+| param                      | includes  | description                            |
+|----------------------------|-----------|----------------------------------------|
+| chatId: integer            | always    | unique chat's id                       |
+| xCoordLeftTop: string      | optional  | Top left point of square's x coord     |
+| yCoordLeftTop: string      | optional  | Top left point of square's y coord     |
+| xCoordRightBottom: string  | optional  | Bottom right point of square's x coord |
+| yCoordRightBottom: string  | optional  | Bottom right point of square's y coord |
+
+Returns array of CellUnion, which coordinates do not exceed given square
+
+| param                     | includes | description                                |
+|---------------------------|----------|--------------------------------------------|
+| id: integer               | always   | unique cell union's id                     |
+| chatId: integer           | always   | unique chat's id                           |
+| xCoordLeftTop: string     | always   | Top left point of cell union's x coord     |
+| yCoordLeftTop: string     | always   | Top left point of cell union's y coord     |
+| xCoordRightBottom: string | always   | Bottom right point of cell union's x coord |
+| yCoordRightBottom: string | always   | Bottom right point of cell union's y coord |
 
 # Examples
 ### Example of GET request

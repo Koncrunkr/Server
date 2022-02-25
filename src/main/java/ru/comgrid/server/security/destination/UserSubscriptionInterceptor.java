@@ -71,8 +71,11 @@ public class UserSubscriptionInterceptor implements ChannelInterceptor{
         List<String> destinations = headerAccessor.getNativeHeader("destination");
         assert destinations != null;
         if(destinations.size() != 1)
-            throw new IllegalStateException("Multiple destinations is not supported");
-        return destinations.get(0).split("/");
+            throw new IllegalArgumentException("Multiple destinations is not supported");
+        String[] fullDestination = destinations.get(0).split("/");
+        if(fullDestination.length != 5)
+            throw new IllegalArgumentException("Destination is not correct: " + destinations.get(0));
+        return fullDestination;
     }
 
 

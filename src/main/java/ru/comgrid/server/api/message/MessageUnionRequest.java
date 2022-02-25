@@ -10,8 +10,10 @@ import lombok.Setter;
 @NoArgsConstructor
 @Getter
 @Setter
-public class MessagesRequest extends MessageUnionRequest{
-    public int amountOfMessages;
-    public long sinceDateTimeMillis;
-    public long untilDateTimeMillis;
+public class MessageUnionRequest{
+    public long chatId;
+    public int xCoordLeftTop;
+    public int yCoordLeftTop;
+    public int xCoordRightBottom;
+    public int yCoordRightBottom;
 }

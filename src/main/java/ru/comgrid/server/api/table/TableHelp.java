@@ -3,9 +3,9 @@ package ru.comgrid.server.api.table;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import org.springframework.data.domain.Page;
+import ru.comgrid.server.api.message.MessageUnionRequest;
 import ru.comgrid.server.api.message.MessagesRequest;
 import ru.comgrid.server.model.Chat;
-import ru.comgrid.server.model.Message;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -21,9 +21,9 @@ public enum TableHelp{;
         );
     }
 
-    public static JsonArray toJson(Page<Message> messagePages){
+    public static <T> JsonArray toJson(Page<T> messagePages){
         JsonArray messages = new JsonArray(messagePages.getNumberOfElements());
-        for (Message messagePage : messagePages){
+        for (T messagePage : messagePages){
             messages.add(gson.toJsonTree(messagePage));
         }
         return messages;
@@ -36,7 +36,7 @@ public enum TableHelp{;
      * @param messagesRequest request info containing borders
      * @return true if borders are out of bounds, false if everything's ok
      */
-    public static boolean checkBorders(Chat chat, MessagesRequest messagesRequest){
+    public static boolean checkBorders(Chat chat, MessageUnionRequest messagesRequest){
         if(messagesRequest.xCoordLeftTop == 0 &&
             messagesRequest.yCoordLeftTop == 0 &&
             messagesRequest.xCoordRightBottom == 0 &&
