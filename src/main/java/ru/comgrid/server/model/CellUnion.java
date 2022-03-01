@@ -1,8 +1,12 @@
 package ru.comgrid.server.model;
 
+import lombok.Getter;
+
 import javax.persistence.*;
+import java.math.BigDecimal;
 
 @Entity
+@Getter
 public class CellUnion{
     @Id
     @GeneratedValue
@@ -12,14 +16,17 @@ public class CellUnion{
     private Long chatId;
 
     @Column(nullable = false)
-    private Long leftTopx;
+    private BigDecimal creatorId;
 
     @Column(nullable = false)
-    private Long leftTopy;
+    private Integer xcoordLeftTop;
 
     @Column(nullable = false)
-    private Long rightDownx;
+    private Integer ycoordLeftTop;
 
     @Column(nullable = false)
-    private Long rightDowny;
+    private Integer xcoordRightBottom;
+
+    @Column(nullable = false)
+    private Integer ycoordRightBottom;
 }

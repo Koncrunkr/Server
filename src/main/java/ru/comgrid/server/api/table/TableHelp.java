@@ -5,6 +5,7 @@ import com.google.gson.JsonArray;
 import org.springframework.data.domain.Page;
 import ru.comgrid.server.api.message.MessageUnionRequest;
 import ru.comgrid.server.api.message.MessagesRequest;
+import ru.comgrid.server.model.CellUnion;
 import ru.comgrid.server.model.Chat;
 
 import java.time.LocalDateTime;
@@ -59,5 +60,12 @@ public enum TableHelp{;
             messagesRequest.sinceDateTimeMillis > System.currentTimeMillis() ||
             messagesRequest.untilDateTimeMillis < 0 ||
             messagesRequest.untilDateTimeMillis > System.currentTimeMillis();
+    }
+
+    public static boolean isInside(CellUnion inside, CellUnion outbound){
+        return outbound.getXcoordLeftTop() <= inside.getXcoordLeftTop() &&
+            outbound.getYcoordLeftTop() <= inside.getYcoordLeftTop() &&
+            outbound.getXcoordRightBottom() >= inside.getXcoordRightBottom() &&
+            outbound.getYcoordLeftTop() >= inside.getYcoordRightBottom();
     }
 }

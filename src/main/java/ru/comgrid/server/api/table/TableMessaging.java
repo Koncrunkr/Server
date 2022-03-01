@@ -1,28 +1,27 @@
 package ru.comgrid.server.api.table;
 
-import lombok.AllArgsConstructor;
-import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.event.EventListener;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.socket.messaging.SessionSubscribeEvent;
+import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
+import ru.comgrid.server.exception.IllegalAccessException;
+import ru.comgrid.server.model.CellUnion;
 import ru.comgrid.server.model.Message;
-import ru.comgrid.server.repository.ChatParticipantsRepository;
+import ru.comgrid.server.repository.CellUnionRepository;
 import ru.comgrid.server.repository.MessageRepository;
 
-import javax.websocket.server.ServerEndpoint;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 /**
  * Table messaging via SockJS(WebSocket)
@@ -30,21 +29,27 @@ import java.time.LocalDateTime;
  */
 @Controller
 public class TableMessaging{
-    private final ChatParticipantsRepository participantsRepository;
+    private final CellUnionRepository cellUnionRepository;
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final AccessService accessService;
+    private final int defaultPageSize;
 
     /**
      * @hidden
      */
     public TableMessaging(
-        @Autowired ChatParticipantsRepository participantsRepository,
+        @Autowired CellUnionRepository cellUnionRepository,
         @Autowired MessageRepository messageRepository,
-        @Autowired SimpMessagingTemplate messagingTemplate
+        @Autowired SimpMessagingTemplate messagingTemplate,
+        @Autowired AccessService accessService,
+        @Value("${ru.comgrid.chat.default-page-size}") int defaultPageSize
     ){
-        this.participantsRepository = participantsRepository;
+        this.cellUnionRepository = cellUnionRepository;
         this.messageRepository = messageRepository;
         this.messagingTemplate = messagingTemplate;
+        this.accessService = accessService;
+        this.defaultPageSize = defaultPageSize;
     }
 
     @MessageMapping("/table")
@@ -53,28 +58,50 @@ public class TableMessaging{
         @Payload Message chatMessage
     ){
         BigDecimal personId = UserHelp.extractId(user);
-        boolean isInTable = participantsRepository.existsByChatAndPerson(chatMessage.getChatId(), personId);
-//        boolean isInTable = true;
-        if(!isInTable){
+        Long chatId = chatMessage.getChatId();
+        Optional<Message> existingMessage = messageRepository.findMessageByChatIdAndXAndY(chatId, chatMessage.getX(), chatMessage.getY());
+        if(!accessService.hasAccessToSendOrEditMessage(personId, chatMessage, existingMessage)){
             messagingTemplate.convertAndSendToUser(
                 (String) user.getAttributes().get("sub"),
                 "/queue/table/exception",
-                new ChatNotFoundException(404, "Could not find chat with such id")
+                new IllegalAccessException("to send messages in this chat")
             );
             return;
         }
 
-        chatMessage.setId(null);
+        chatMessage.setId(existingMessage.map(Message::getId).orElse(null));
         chatMessage.setSenderId(personId);
         chatMessage.setTime(LocalDateTime.now(Clock.systemUTC()));
         Message message = messageRepository.save(chatMessage);
 
-        messagingTemplate.convertAndSend("/connection/table/queue/" + chatMessage.getChatId().toString(), message);
+        messagingTemplate.convertAndSend("/connection/table/queue/" + chatId, message);
     }
 
-    @AllArgsConstructor
-    private static class ChatNotFoundException{
-        private int exceptionType;
-        private String disclaimer;
+    @MessageMapping("/cell_union")
+    public void processCellsUnion(
+        @AuthenticationPrincipal OAuth2User user,
+        @Payload CellUnion cellUnion
+    ){
+        BigDecimal personId = UserHelp.extractId(user);
+        Long chatId = cellUnion.getChatId();
+        if(cellUnion.getId() != null){
+            Optional<CellUnion> existingCellUnion = cellUnionRepository.findById(cellUnion.getId());
+            accessService.hasAccessToCreateOrEditCellUnion(personId, cellUnion, existingCellUnion);
+            if(existingCellUnion.isPresent()){
+                if(existingCellUnion.get().getCreatorId().compareTo(personId) != 0){
+
+                }
+            }
+        }
+
+        Page<CellUnion> cellUnionsIntersected = cellUnionRepository.findAllByChat(
+            chatId, cellUnion.getXcoordLeftTop(), cellUnion.getYcoordLeftTop(),
+            cellUnion.getXcoordRightBottom(), cellUnion.getYcoordRightBottom(),
+            Pageable.ofSize(defaultPageSize)
+        );
+
+        for(var intersected : cellUnionsIntersected){
+
+        }
     }
 }

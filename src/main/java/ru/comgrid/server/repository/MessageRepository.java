@@ -8,8 +8,11 @@ import org.springframework.data.repository.query.Param;
 import ru.comgrid.server.model.Message;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface MessageRepository extends PagingAndSortingRepository<Message, Long> {
+    Optional<Message> findMessageByChatIdAndXAndY(@Param("chatId") Long chatId, @Param("x") Integer x, @Param("y") Integer y);
+
     Page<Message> findAllByChatIdAndXBetweenAndYBetweenOrderByTimeDesc(
         @Param("chatId") Long chatId,
         @Param("startX") Integer startX,

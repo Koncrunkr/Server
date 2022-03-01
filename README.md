@@ -97,7 +97,7 @@ Might return 404 if chat doesn't exist
 ### Get messages of table
 Get messages of table in given square with specified topLeft and bottomRight point.
 ```http request
-POST https://comgrid.ru:8443/table/messages
+POST https://comgrid.ru:8443/message/list
 ```
 Params:
 
@@ -145,22 +145,26 @@ Returns 200 response code on success. 403 response code if user doesn't have acc
 ### Get all cell unions
 
 ```http request
-POST https://comgrid.ru:8443/table/cell_unions
+POST https://comgrid.ru:8443/message/unions
 ```
 
-Get cell unions of chat in square
+Suppose you want to get union cells inside some square:
+![Square](https://sun9-75.userapi.com/impg/o3MOVJFYabFR1upRd_S9x6msrbT7pUGs6pHp3g/DXhWOP-6kx0.jpg?size=1338x694&quality=96&sign=53015cac24b6463a5d97329a005ca4f6&type=album)
+
+This request allows you to get all the checked cell unions 
+AND question marked ones(but not crossed out)
 
 Params:
 
-| param                      | includes  | description                            |
-|----------------------------|-----------|----------------------------------------|
-| chatId: integer            | always    | unique chat's id                       |
-| xCoordLeftTop: string      | optional  | Top left point of square's x coord     |
-| yCoordLeftTop: string      | optional  | Top left point of square's y coord     |
-| xCoordRightBottom: string  | optional  | Bottom right point of square's x coord |
-| yCoordRightBottom: string  | optional  | Bottom right point of square's y coord |
+| param                     | includes  | description                            |
+|---------------------------|-----------|----------------------------------------|
+| chatId: integer           | always    | unique chat's id                       |
+| xcoordLeftTop: string     | optional  | Top left point of square's x coord     |
+| ycoordLeftTop: string     | optional  | Top left point of square's y coord     |
+| xcoordRightBottom: string | optional  | Bottom right point of square's x coord |
+| ycoordRightBottom: string | optional  | Bottom right point of square's y coord |
 
-Returns array of CellUnion, which coordinates do not exceed given square
+Returns array of CellUnion
 
 | param                     | includes | description                                |
 |---------------------------|----------|--------------------------------------------|
@@ -183,8 +187,10 @@ fetch(
 ).then(
     response => {
         if(response.status == 200) {
-            person = JSON.parse(response.text())
-            // person is js object...
+            response.text().then((text) => {
+                person = JSON.parse(text)
+                // person is js object...
+            })
         }else{
             // some error occured
         }
@@ -209,8 +215,10 @@ fetch(
 ).then(
     response => {
         if(response.status == 200){
-            table = JSON.parse(response.text())
-            // table is js object...
+            response.text().then((text) => {
+                table = JSON.parse(text)
+                // table is js object...
+            })
         }else{
             // some error occured
         }

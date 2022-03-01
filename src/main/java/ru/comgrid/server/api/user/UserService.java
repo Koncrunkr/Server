@@ -22,7 +22,7 @@ import java.util.List;
  * @author MediaNik
  */
 @RestController
-@RequestMapping(value = "/user", produces = "application/json")
+@RequestMapping(value = "/user", produces = "application/json; charset=utf-8")
 public class UserService{
 
     private final PersonRepository personRepository;

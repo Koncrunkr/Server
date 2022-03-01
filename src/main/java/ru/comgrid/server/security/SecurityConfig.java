@@ -3,6 +3,7 @@ package ru.comgrid.server.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.trace.http.HttpTraceRepository;
 import org.springframework.boot.actuate.trace.http.InMemoryHttpTraceRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +19,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import org.springframework.web.socket.WebSocketHandler;
 import ru.comgrid.server.repository.PersonRepository;
 
 import java.util.*;
@@ -68,7 +70,7 @@ public class SecurityConfig
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOrigins(List.of("http://localhost:8081", "https://comgrid.ru"));
+        config.setAllowedOrigins(List.of("https://comgrid.ru"));
         config.setAllowedMethods(List.of("*"));
         config.setAllowedHeaders(List.of("Content-Type"));
         source.registerCorsConfiguration("/**", config);

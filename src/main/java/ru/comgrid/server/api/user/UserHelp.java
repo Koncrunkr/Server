@@ -9,4 +9,8 @@ public enum UserHelp{; // no elements, utility class
     public static BigDecimal extractId(OAuth2User user){
         return new BigDecimal(((String) user.getAttribute("sub")));
     }
+
+    public static boolean samePerson(BigDecimal firstPerson, BigDecimal secondPerson){
+        return firstPerson.compareTo(secondPerson) == 0;
+    }
 }
