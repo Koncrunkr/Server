@@ -1,5 +1,9 @@
 package ru.comgrid.server.api.user;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
@@ -71,8 +75,9 @@ public class UserService{
      * @param includeChats boolean value whether to include {@link Chat} list or not
      * @return {@link Person} in json format
      */
+    @Operation(summary = "Get user info")
     @GetMapping("/info")
-    public ResponseEntity<String> getUserInfo(
+    public ResponseEntity<Person> getUserInfo(
         @AuthenticationPrincipal OAuth2User user,
         @RequestParam(required = false, defaultValue = "false") boolean includeChats
     ){
@@ -89,9 +94,14 @@ public class UserService{
             person.setChats(chats);
         }
 
-        return ResponseEntity.ok(person.toString());
+        return ResponseEntity.ok(person);
     }
 
+    @Operation(summary = "Check if user is logged in")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "User is logged in", content = @Content()),
+        @ApiResponse(responseCode = "401", description = "User is not logged in", content = @Content()),
+    })
     @GetMapping("/login")
     public ResponseEntity<String> getUserInfo(){
         return SecurityContextHolder.getContext().getAuthentication() != null &&

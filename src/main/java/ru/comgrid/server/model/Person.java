@@ -1,5 +1,6 @@
 package ru.comgrid.server.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.Getter;
@@ -63,6 +64,7 @@ public class Person implements Serializable, Persistable<BigDecimal>, Jsonable{
     @Getter
     private final Date created = new Date();
 
+    @JsonIgnore
     @Transient
     @Setter
     @Getter

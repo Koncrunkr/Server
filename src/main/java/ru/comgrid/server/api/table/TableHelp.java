@@ -38,21 +38,21 @@ public enum TableHelp{;
      * @return true if borders are out of bounds, false if everything's ok
      */
     public static boolean checkBorders(Chat chat, MessageUnionRequest messagesRequest){
-        if(messagesRequest.xCoordLeftTop == 0 &&
-            messagesRequest.yCoordLeftTop == 0 &&
-            messagesRequest.xCoordRightBottom == 0 &&
-            messagesRequest.yCoordRightBottom == 0
+        if(messagesRequest.xcoordLeftTop == 0 &&
+            messagesRequest.ycoordLeftTop == 0 &&
+            messagesRequest.xcoordRightBottom == 0 &&
+            messagesRequest.ycoordRightBottom == 0
         ){
-            messagesRequest.xCoordRightBottom = chat.getWidth() - 1;
-            messagesRequest.yCoordRightBottom = chat.getHeight() - 1;
+            messagesRequest.xcoordRightBottom = chat.getWidth() - 1;
+            messagesRequest.ycoordRightBottom = chat.getHeight() - 1;
             return true;
         }
-        return messagesRequest.xCoordLeftTop < 0 ||
-            messagesRequest.xCoordLeftTop > messagesRequest.xCoordRightBottom ||
-            messagesRequest.xCoordRightBottom >= chat.getWidth() ||
-            messagesRequest.yCoordLeftTop < 0 ||
-            messagesRequest.yCoordLeftTop > messagesRequest.yCoordRightBottom ||
-            messagesRequest.yCoordRightBottom >= chat.getHeight();
+        return messagesRequest.xcoordLeftTop < 0 ||
+            messagesRequest.xcoordLeftTop > messagesRequest.xcoordRightBottom ||
+            messagesRequest.xcoordRightBottom >= chat.getWidth() ||
+            messagesRequest.ycoordLeftTop < 0 ||
+            messagesRequest.ycoordLeftTop > messagesRequest.ycoordRightBottom ||
+            messagesRequest.ycoordRightBottom >= chat.getHeight();
     }
 
     public static boolean checkTimeBorders(MessagesRequest messagesRequest){

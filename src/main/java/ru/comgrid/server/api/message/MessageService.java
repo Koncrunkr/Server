@@ -1,5 +1,11 @@
 package ru.comgrid.server.api.message;
 
+import io.swagger.v3.oas.annotations.ExternalDocumentation;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +18,11 @@ import org.springframework.web.bind.annotation.*;
 import ru.comgrid.server.api.table.TableHelp;
 import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
+import ru.comgrid.server.exception.IllegalAccessException;
+import ru.comgrid.server.exception.OutOfBoundsRequestException;
+import ru.comgrid.server.exception.TooBigRequestException;
+import ru.comgrid.server.exception.WrongRequestException;
+import ru.comgrid.server.model.CellUnion;
 import ru.comgrid.server.model.Chat;
 import ru.comgrid.server.model.Message;
 import ru.comgrid.server.model.Right;
@@ -20,6 +31,7 @@ import ru.comgrid.server.repository.MessageRepository;
 import ru.comgrid.server.repository.CellUnionRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RestController
 @RequestMapping(value = "/message", produces = "application/json; charset=utf-8")
@@ -68,25 +80,22 @@ public class MessageService{
      * @param messagesRequest chat object accommodating all parameters
      * @return {@link Message} list in json format
      */
-    // using post, because it can have a lot of information, that get request might not accommodate
+    @Operation(summary = "get messages of chat", description = "Get messages of table in given square with specified topLeft and bottomRight point.")
     @PostMapping("/list")
-    public ResponseEntity<String> getMessages(
+    public ResponseEntity<List<Message>> getMessages(
         @AuthenticationPrincipal OAuth2User user,
         @RequestBody MessagesRequest messagesRequest
     ){
         var userId = UserHelp.extractId(user);
 
         if(!accessService.hasAccessTo(userId, messagesRequest.chatId, Right.Read))
-            //            throw new IllegalAccessException("to read messages in this chat");
-            return ResponseEntity.status(403).body("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 403, \"reason\": \"Sorry, you don't have access to read messages in this chat\"}");
+            throw new IllegalAccessException("chat.read_messages");
 
         if(messagesRequest.amountOfMessages > maxMessagesSize)
-            //            throw new TooBigRequestException("messages", maxMessagesSize);
-            return ResponseEntity.badRequest().body("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 400, \"reason\": \"Amount of messages has to be not greater than " + maxMessagesSize + "\"}");
+            throw new TooBigRequestException("chat_messages", maxMessagesSize);
 
         if(messagesRequest.amountOfMessages < 0)
-            //            throw new WrongRequestException("Amount of messages has to be positive");
-            return ResponseEntity.badRequest().body("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 400, \"reason\": \"Amount of messages has to be positive\"}");
+            throw new WrongRequestException("messages.negative");
 
         if(messagesRequest.amountOfMessages == 0)
             messagesRequest.amountOfMessages = defaultPageSize;
@@ -95,13 +104,11 @@ public class MessageService{
         Chat chat = chatRepository.findById(messagesRequest.chatId).get();
 
         if(TableHelp.checkBorders(chat, messagesRequest)){
-            //            throw new OutOfBoundsRequestException();
-            return ResponseEntity.badRequest().body("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 400, \"reason\": \"You are out of borders\"}");
+            throw new OutOfBoundsRequestException();
         }
 
         if(TableHelp.checkTimeBorders(messagesRequest)){
-            //            throw new OutOfBoundsRequestException("You can't specify neither negative time nor future");
-            return ResponseEntity.badRequest().body("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 400, \"reason\": \"You can't specify neither negative time nor future\"}");
+            throw new OutOfBoundsRequestException("time.negative-or-future");
         }
 
         if(messagesRequest.sinceDateTimeMillis == 0 && messagesRequest.untilDateTimeMillis == 0){
@@ -119,9 +126,18 @@ public class MessageService{
         }
     }
 
-
+    @ApiResponse(responseCode = "403", description = "Forbidden access. Error code: chat.read_messages", content = @Content())
+    @ApiResponse(responseCode = "400", description = "Bad request. Error code: chat.out_of_borders", content = @Content())
+    @ApiResponse(responseCode = "200")
+    @Operation(summary = "Get cell unions", description = """
+        Suppose you want to get union cells inside some square:
+        ![Square](https://sun9-75.userapi.com/impg/o3MOVJFYabFR1upRd_S9x6msrbT7pUGs6pHp3g/DXhWOP-6kx0.jpg?size=1338x694&quality=96&sign=53015cac24b6463a5d97329a005ca4f6&type=album)
+                
+        This request allows you to get all the checked cell unions
+        AND question marked ones(but not crossed out)
+        """)
     @GetMapping("/unions")
-    public ResponseEntity<String> cellUnions(
+    public ResponseEntity<List<CellUnion>> cellUnions(
         @AuthenticationPrincipal OAuth2User user,
         @RequestParam long chatId,
         @RequestParam(required = false, defaultValue = "0") int xcoordLeftTop,
@@ -132,84 +148,82 @@ public class MessageService{
         var userId = UserHelp.extractId(user);
 
         if(!accessService.hasAccessTo(userId, chatId, Right.Read)){
-            return ResponseEntity.status(403).body("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 403, \"reason\": \"Sorry, you don't have access to read messages in this chat\"}");
+            throw new IllegalAccessException("chat.read_messages");
         }
 
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         Chat chat = chatRepository.findById(chatId).get();
 
         if(TableHelp.checkBorders(chat, new MessageUnionRequest(chatId, xcoordLeftTop, ycoordLeftTop, xcoordRightBottom, ycoordRightBottom))){
-            return ResponseEntity.badRequest().body("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 400, \"reason\": \"You are out of borders\"}");
+            throw new OutOfBoundsRequestException("chat.out_of_bounds");
         }
 
         return ResponseEntity.ok(
-            TableHelp.toJson(cellUnionRepository.findAllByChat(
+            cellUnionRepository.findAllByChat(
                 chatId,
                 xcoordLeftTop,
                 ycoordLeftTop,
                 xcoordRightBottom,
                 ycoordRightBottom,
                 Pageable.ofSize(defaultPageSize)
-            )).toString());
+            ).getContent());
     }
 
 
-    public ResponseEntity<String> getLastMessages(@NotNull MessagesRequest messagesRequest){
+    public ResponseEntity<List<Message>> getLastMessages(@NotNull MessagesRequest messagesRequest){
         Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenOrderByTimeDesc(
-            messagesRequest.chatId, messagesRequest.xCoordLeftTop, messagesRequest.xCoordRightBottom,
-            messagesRequest.yCoordLeftTop, messagesRequest.yCoordRightBottom,
+            messagesRequest.chatId, messagesRequest.xcoordLeftTop, messagesRequest.xcoordRightBottom,
+            messagesRequest.ycoordLeftTop, messagesRequest.ycoordRightBottom,
             Pageable.ofSize(messagesRequest.amountOfMessages)
         );
 
-        String body = TableHelp.toJson(messages).toString();
-        System.out.println(body);
-        return ResponseEntity.ok(body);
+        return ResponseEntity.ok(messages.getContent());
     }
-    public ResponseEntity<String> getMessagesUntil(@NotNull MessagesRequest messagesRequest){
+    public ResponseEntity<List<Message>> getMessagesUntil(@NotNull MessagesRequest messagesRequest){
         LocalDateTime until = TableHelp.toDateTime(messagesRequest.untilDateTimeMillis);
 
         Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeBeforeOrderByTimeDesc(
             messagesRequest.chatId,
-            messagesRequest.xCoordLeftTop,
-            messagesRequest.xCoordRightBottom,
-            messagesRequest.yCoordLeftTop,
-            messagesRequest.yCoordRightBottom,
+            messagesRequest.xcoordLeftTop,
+            messagesRequest.xcoordRightBottom,
+            messagesRequest.ycoordLeftTop,
+            messagesRequest.ycoordRightBottom,
             until,
             Pageable.ofSize(messagesRequest.amountOfMessages)
         );
 
-        return ResponseEntity.ok(TableHelp.toJson(messages).toString());
+        return ResponseEntity.ok(messages.getContent());
     }
-    public ResponseEntity<String> getMessagesSince(@NotNull MessagesRequest messagesRequest){
+    public ResponseEntity<List<Message>> getMessagesSince(@NotNull MessagesRequest messagesRequest){
         LocalDateTime since = TableHelp.toDateTime(messagesRequest.sinceDateTimeMillis);
 
         Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeAfterOrderByTimeDesc(
             messagesRequest.chatId,
-            messagesRequest.xCoordLeftTop,
-            messagesRequest.xCoordRightBottom,
-            messagesRequest.yCoordLeftTop,
-            messagesRequest.yCoordRightBottom,
+            messagesRequest.xcoordLeftTop,
+            messagesRequest.xcoordRightBottom,
+            messagesRequest.ycoordLeftTop,
+            messagesRequest.ycoordRightBottom,
             since,
             Pageable.ofSize(messagesRequest.amountOfMessages)
         );
 
-        return ResponseEntity.ok(TableHelp.toJson(messages).toString());
+        return ResponseEntity.ok(messages.getContent());
     }
-    public ResponseEntity<String> getMessagesBetween(@NotNull MessagesRequest messagesRequest){
+    public ResponseEntity<List<Message>> getMessagesBetween(@NotNull MessagesRequest messagesRequest){
         LocalDateTime since = TableHelp.toDateTime(messagesRequest.sinceDateTimeMillis);
         LocalDateTime until = TableHelp.toDateTime(messagesRequest.untilDateTimeMillis);
 
         Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeBetweenOrderByTimeDesc(
             messagesRequest.chatId,
-            messagesRequest.xCoordLeftTop,
-            messagesRequest.xCoordRightBottom,
-            messagesRequest.yCoordLeftTop,
-            messagesRequest.yCoordRightBottom,
+            messagesRequest.xcoordLeftTop,
+            messagesRequest.xcoordRightBottom,
+            messagesRequest.ycoordLeftTop,
+            messagesRequest.ycoordRightBottom,
             since,
             until,
             Pageable.ofSize(messagesRequest.amountOfMessages)
         );
 
-        return ResponseEntity.ok(TableHelp.toJson(messages).toString());
+        return ResponseEntity.ok(messages.getContent());
     }
 }

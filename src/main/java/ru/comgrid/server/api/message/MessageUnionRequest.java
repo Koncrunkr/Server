@@ -12,8 +12,8 @@ import lombok.Setter;
 @Setter
 public class MessageUnionRequest{
     public long chatId;
-    public int xCoordLeftTop;
-    public int yCoordLeftTop;
-    public int xCoordRightBottom;
-    public int yCoordRightBottom;
+    public int xcoordLeftTop;
+    public int ycoordLeftTop;
+    public int xcoordRightBottom;
+    public int ycoordRightBottom;
 }

@@ -1,5 +1,7 @@
 package ru.comgrid.server.api.table;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -13,6 +15,8 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
+import ru.comgrid.server.exception.IllegalAccessException;
+import ru.comgrid.server.exception.WrongRequestException;
 import ru.comgrid.server.model.Chat;
 import ru.comgrid.server.model.Person;
 import ru.comgrid.server.model.Right;
@@ -133,8 +137,23 @@ public class TableService{
         return ResponseEntity.ok(chat);
     }
 
+    @ApiResponse(
+        responseCode = "400",
+        description = "Bad request. Error codes: user.not_found, user.already_participant",
+        content = @Content()
+    )
+    @ApiResponse(
+        responseCode = "403",
+        description = "Forbidden access. Error codes: add_participant",
+        content = @Content()
+    )
+    @ApiResponse(
+        responseCode = "200",
+        description = "User was added",
+        content = @Content()
+    )
     @PostMapping("/add_participant")
-    public ResponseEntity<String> addParticipant(
+    public void addParticipant(
         @AuthenticationPrincipal OAuth2User user,
         @RequestBody AddParticipantRequest addParticipantRequest
     ){
@@ -142,15 +161,15 @@ public class TableService{
         var newUserId = new BigDecimal(addParticipantRequest.userId);
 
         if (!accessService.hasAccessTo(adminUserId, addParticipantRequest.chatId, Right.AddUsers)){
-            return ResponseEntity.status(403).body("You don't have access to add participants to this chat");
+            throw new IllegalAccessException("add_participant");
         }
 
         if(!personRepository.existsById(newUserId)){
-            return ResponseEntity.badRequest().body("User is not found");
+            throw new WrongRequestException("user.not_found");
         }
 
         if(participantsRepository.existsByChatAndPerson(addParticipantRequest.chatId, newUserId)){
-            return ResponseEntity.badRequest().body("User is already a participant of this chat");
+            throw new WrongRequestException("user.already_participant");
         }
 
         participantsRepository.save(new TableParticipants(
@@ -159,8 +178,6 @@ public class TableService{
             EnumSet0.of(Right.Read),
             LocalDateTime.now()
         ));
-
-        return ResponseEntity.ok("");
     }
 
 
