@@ -12,20 +12,17 @@ spring.datasource.password=
 spring.security.oauth2.client.registration.google.client-id=
 spring.security.oauth2.client.registration.google.client-secret=
 
-spring.jpa.hibernate.ddl-auto=update
+spring.jpa.hibernate.ddl-auto=update # whether to change schema on entity change (google for values)
 
-ru.comgrid.websocket.trace.max-count=100
+ru.comgrid.websocket.trace.max-count=100 # websocket max count of traces
 management.trace.http.enabled=false
-ru.comgrid.websocket.trace.enabled=true
-ru.comgrid.http.trace.enabled=true
+ru.comgrid.websocket.trace.enabled=true # websocket trace
+ru.comgrid.http.trace.enabled=true # http trace
 
-ru.comgrid.chat.default-page-size=50
-ru.comgrid.chat.participants.default-page-size=50
+spring.servlet.multipart.max-file-size=10MB # maximum file size to be uploaded
+spring.servlet.multipart.max-request-size=10MB #maximum request size
 
-spring.servlet.multipart.max-file-size=10MB
-spring.servlet.multipart.max-request-size=10MB
-
-server.servlet.session.cookie.secure=true
-server.servlet.session.persistent=true
+server.servlet.session.cookie.secure=true # whether to use secure cookie
+server.servlet.session.persistent=true # whether to save cookies between restarts
 ```
 To compile `fat jar` use command `clean install spring-boot:repackage -DskipTests`
