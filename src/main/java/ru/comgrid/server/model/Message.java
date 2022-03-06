@@ -1,7 +1,10 @@
 package ru.comgrid.server.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Getter;
 import lombok.Setter;
+import ru.comgrid.server.api.user.UserHelp;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -43,7 +46,6 @@ public class Message implements Serializable {
     @Getter
     @Setter
     @Column(nullable = false)
-//    @ManyToOne(targetEntity = Chat.class, optional = false)
     private Long chatId;
 
     @Getter
@@ -53,7 +55,7 @@ public class Message implements Serializable {
 
     @Getter
     @Column(nullable = false, precision = 40)
-//    @ManyToOne(targetEntity = Person.class, optional = false)
+    @JsonSerialize(using = ToStringSerializer.class)
     @Setter
     private BigDecimal senderId;
 
@@ -70,7 +72,9 @@ public class Message implements Serializable {
         this.text = text;
     }
 
-
+    public boolean isSender(BigDecimal personId){
+        return UserHelp.samePerson(personId, this.senderId);
+    }
     public Message() {
     }
 }

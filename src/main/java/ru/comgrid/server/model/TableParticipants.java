@@ -1,5 +1,7 @@
 package ru.comgrid.server.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.*;
 import org.springframework.data.domain.Persistable;
 import ru.comgrid.server.util.EnumSet0;
@@ -19,11 +21,10 @@ import java.util.EnumSet;
 public class TableParticipants implements Serializable, Persistable<TableParticipant>{
     @Id
     @Getter
-//    @ManyToOne(targetEntity = Chat.class, optional = false)
     private Long chat;
     @Id
     @Column(precision = 40)
-//    @ManyToOne(targetEntity = Person.class, optional = false)
+    @JsonSerialize(using = ToStringSerializer.class)
     @Getter
     private BigDecimal person;
 

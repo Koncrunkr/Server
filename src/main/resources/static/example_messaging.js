@@ -19,9 +19,29 @@ function connect() {
         setConnected(true);
         $("#stomp").append("<tr><td>" + frame + "</td></tr>")
         const chatId = $("#chatId").val();
-        stompClient.subscribe("/connection/table/queue/" + chatId, function (greeting) {
+        stompClient.subscribe("/connection/table_message/" + chatId, function (greeting) {
             showMessage(greeting.body);
         });
+
+        fetch(
+            "/user/info",
+            {
+                method: "GET",
+                credentials: "include",
+                headers: {"Content-Types": "application/json"}
+            }
+        ).then(
+            response => response.text()
+        ).then(
+            text => {
+                console.log(JSON.parse(text));
+                console.log(text);
+                stompClient.subscribe("/connection/user/" + JSON.parse(text).id, function (greeting) {
+                    showMessage(greeting.body);
+                })
+            }
+        )
+
     });
 }
 
@@ -34,7 +54,7 @@ function disconnect() {
 }
 
 function sendMessage() {
-    stompClient.send("/connection/table", {},
+    stompClient.send("/connection/table_message", {},
         JSON.stringify(
             {
                 x: $("#xCoord").val(),

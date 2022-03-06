@@ -2,26 +2,28 @@ package ru.comgrid.server.api.table;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
-import ru.comgrid.server.exception.IllegalAccessException;
 import ru.comgrid.server.model.CellUnion;
 import ru.comgrid.server.model.Message;
 import ru.comgrid.server.repository.CellUnionRepository;
+import ru.comgrid.server.repository.ChatParticipantsRepository;
 import ru.comgrid.server.repository.MessageRepository;
+import ru.comgrid.server.security.destination.IndividualDestinationInterceptor;
 
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
-import java.util.Optional;
+
+import static ru.comgrid.server.api.message.MessageHelp.tableDestination;
 
 /**
  * Table messaging via SockJS(WebSocket)
@@ -33,7 +35,6 @@ public class TableMessaging{
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final AccessService accessService;
-    private final int defaultPageSize;
 
     /**
      * @hidden
@@ -42,66 +43,91 @@ public class TableMessaging{
         @Autowired CellUnionRepository cellUnionRepository,
         @Autowired MessageRepository messageRepository,
         @Autowired SimpMessagingTemplate messagingTemplate,
-        @Autowired AccessService accessService,
-        @Value("${ru.comgrid.chat.default-page-size}") int defaultPageSize
+        @Autowired AccessService accessService
     ){
         this.cellUnionRepository = cellUnionRepository;
         this.messageRepository = messageRepository;
         this.messagingTemplate = messagingTemplate;
         this.accessService = accessService;
-        this.defaultPageSize = defaultPageSize;
     }
 
-    @MessageMapping("/table")
-    public void processMessage(
+    @MessageMapping("/table_message")
+    public void processNewMessage(
         @AuthenticationPrincipal OAuth2User user,
         @Payload Message chatMessage
     ){
         BigDecimal personId = UserHelp.extractId(user);
-        Long chatId = chatMessage.getChatId();
-        Optional<Message> existingMessage = messageRepository.findMessageByChatIdAndXAndY(chatId, chatMessage.getX(), chatMessage.getY());
-        if(!accessService.hasAccessToSendOrEditMessage(personId, chatMessage, existingMessage)){
-            messagingTemplate.convertAndSendToUser(
-                (String) user.getAttributes().get("sub"),
-                "/queue/table/exception",
-                new IllegalAccessException("to send messages in this chat")
-            );
+        chatMessage.setSenderId(personId);
+        if(!accessService.hasAccessToSendMessage(personId, chatMessage)){
             return;
         }
 
-        chatMessage.setId(existingMessage.map(Message::getId).orElse(null));
+        chatMessage.setTime(LocalDateTime.now(Clock.systemUTC()));
+        Message message = messageRepository.save(chatMessage);
+
+        messagingTemplate.convertAndSend(tableDestination(chatMessage.getChatId()), message);
+    }
+
+    @MessageMapping("/table_message/edit")
+    public void processEditMessage(
+        @AuthenticationPrincipal OAuth2User user,
+        @Payload Message chatMessage
+    ){
+        BigDecimal personId = UserHelp.extractId(user);
+
+        if(!accessService.hasAccessToEditMessage(personId, chatMessage)){
+            return;
+        }
+
         chatMessage.setSenderId(personId);
         chatMessage.setTime(LocalDateTime.now(Clock.systemUTC()));
         Message message = messageRepository.save(chatMessage);
 
-        messagingTemplate.convertAndSend("/connection/table/queue/" + chatId, message);
+        messagingTemplate.convertAndSend(tableDestination(chatMessage.getChatId()), message);
     }
 
-    @MessageMapping("/cell_union")
-    public void processCellsUnion(
+
+    @Component
+    public static class TableMessageDestinationInterceptor implements IndividualDestinationInterceptor{
+        private final ChatParticipantsRepository participantsRepository;
+        public TableMessageDestinationInterceptor(@Autowired ChatParticipantsRepository participantsRepository){this.participantsRepository = participantsRepository;}
+        @Override
+        public String destination(){
+            return "table_message";
+        }
+        @Override
+        public boolean hasAccess(BigDecimal userId, String destinationId){
+            return participantsRepository.existsByChatAndPerson(Long.valueOf(destinationId), userId);
+        }
+    }
+
+    @Transactional
+    @MessageMapping("/table_cell_union")
+    public void processNewCellsUnion(
         @AuthenticationPrincipal OAuth2User user,
-        @Payload CellUnion cellUnion
+        @Payload CellUnion newCellUnion
     ){
         BigDecimal personId = UserHelp.extractId(user);
-        Long chatId = cellUnion.getChatId();
-        if(cellUnion.getId() != null){
-            Optional<CellUnion> existingCellUnion = cellUnionRepository.findById(cellUnion.getId());
-            accessService.hasAccessToCreateOrEditCellUnion(personId, cellUnion, existingCellUnion);
-            if(existingCellUnion.isPresent()){
-                if(existingCellUnion.get().getCreatorId().compareTo(personId) != 0){
-
-                }
-            }
+        if(!accessService.hasAccessToCreateCellUnion(personId, newCellUnion)){
+            return;
         }
 
-        Page<CellUnion> cellUnionsIntersected = cellUnionRepository.findAllByChat(
-            chatId, cellUnion.getXcoordLeftTop(), cellUnion.getYcoordLeftTop(),
-            cellUnion.getXcoordRightBottom(), cellUnion.getYcoordRightBottom(),
-            Pageable.ofSize(defaultPageSize)
-        );
+        CellUnion cellUnion = cellUnionRepository.save(newCellUnion);
+        messagingTemplate.convertAndSend(tableDestination(cellUnion.getChatId()), cellUnion);
+    }
 
-        for(var intersected : cellUnionsIntersected){
-
+    @Transactional
+    @MessageMapping("/table_cell_union/edit")
+    public void processEditCellsUnion(
+        @AuthenticationPrincipal OAuth2User user,
+        @Payload CellUnion newCellUnion
+    ){
+        BigDecimal personId = UserHelp.extractId(user);
+        if(!accessService.hasAccessToEditCellUnion(personId, newCellUnion)){
+            return;
         }
+
+        CellUnion cellUnion = cellUnionRepository.save(newCellUnion);
+        messagingTemplate.convertAndSend(tableDestination(cellUnion.getChatId()), cellUnion);
     }
 }

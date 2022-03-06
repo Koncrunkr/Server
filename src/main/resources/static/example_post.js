@@ -59,7 +59,7 @@ function sendRequestAddPerson() {
 
 function sendRequestMessages() {
     fetch(
-        "/table/messages",
+        "/message/list",
         {
             method: "POST",
             credentials: "include",

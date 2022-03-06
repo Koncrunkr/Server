@@ -12,7 +12,7 @@
 
 	<groupId>ru.comgrid</groupId>
 	<artifactId>server</artifactId>
-	<version>0.1</version>
+	<version>0.1.1</version>
 	<name>Server</name>
 	<description>Server for comgrid.ru</description>
 
@@ -25,6 +25,10 @@
 			<id>space-javaserver</id>
 			<url>https://maven.pkg.jetbrains.space/koncrunkr/p/comgrid/javaserver</url>
 		</repository>
+		<repository>
+			<id>cedarsoft-thirdparty</id>
+			<url>http://maven.cedarsoft.com/content/repositories/thirdparty/</url>
+		</repository>
 	</repositories>
 
 	<distributionManagement>
@@ -35,6 +39,17 @@
 	</distributionManagement>
 
 	<dependencies>
+		<!-- https://mvnrepository.com/artifact/commons-io/commons-io -->
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.11.0</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-oauth2-jose</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-ui</artifactId>
@@ -134,18 +149,24 @@
 		<dependency>
 			<groupId>org.jetbrains</groupId>
 			<artifactId>annotations</artifactId>
-			<version>RELEASE</version>
+			<version>22.0.0</version>
 			<scope>compile</scope>
 		</dependency>
 
-	</dependencies>
+    </dependencies>
 
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<version>2.6.3</version>
 				<configuration>
+					<jvmArguments>-Dspring.application.admin.enabled=true</jvmArguments>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
@@ -153,6 +174,14 @@
 						</exclude>
 					</excludes>
 				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>start</goal>
+							<goal>stop</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

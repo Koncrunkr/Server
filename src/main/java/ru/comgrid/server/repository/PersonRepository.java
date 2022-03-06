@@ -23,5 +23,6 @@ public interface PersonRepository extends PagingAndSortingRepository<Person, Big
             Pageable pageRequest
     );
 
-    boolean existsById(@NonNull BigDecimal id);
+    @Query("select (count(p) > 0) from Person p where p.id = :id")
+    boolean existsById(@Param("id") @NonNull BigDecimal id);
 }

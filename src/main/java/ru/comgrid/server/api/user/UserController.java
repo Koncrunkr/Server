@@ -19,15 +19,10 @@ import ru.comgrid.server.repository.ChatRepository;
 
 import java.util.List;
 
-/**
- * User service, that has most commonly used user targeted endpoints.
- * (frontend must not specify any credentials since
- *  it is done automatically if person is authorized)
- * @author MediaNik
- */
+
 @RestController
 @RequestMapping(value = "/user", produces = "application/json; charset=utf-8")
-public class UserService{
+public class UserController{
 
     private final PersonRepository personRepository;
     private final ChatParticipantsRepository chatParticipantsRepository;
@@ -37,7 +32,7 @@ public class UserService{
     /**
      * @hidden
      */
-    public UserService(
+    public UserController(
         PersonRepository personRepository,
         ChatParticipantsRepository chatParticipantsRepository,
         ChatRepository chatRepository,
@@ -49,32 +44,7 @@ public class UserService{
         this.defaultPageSize = defaultPageSize;
     }
 
-    /**
-     * Get this {@link Person}.
-     * <p>
-     * Add "includeChats=true" param if you want to include chats in returned {@link Person} object
-     * </p>
-     *
-     * <pre>
-     * Example:
-     *
-       fetch(
-           "https://comgrid.ru:8443/user/info?includeChats=true",
-           {
-               method: "GET",
-               credentials: "include", // compulsory
-               headers: {"Content-Type": "application/json"}
-           }
-       ).then(
-           response => response.text()
-       ).then(
-           html => console.log(html)
-       )
-     * </pre>
-     * @param user Authenticated user from Spring security
-     * @param includeChats boolean value whether to include {@link Chat} list or not
-     * @return {@link Person} in json format
-     */
+
     @Operation(summary = "Get user info")
     @GetMapping("/info")
     public ResponseEntity<Person> getUserInfo(
@@ -88,7 +58,7 @@ public class UserService{
         if(includeChats){
             List<Long> chatIds = chatParticipantsRepository.findAllChatsByPerson(
                 person.getId(),
-                Pageable.ofSize(defaultPageSize)
+                Pageable.unpaged()
             ).getContent();
             Iterable<Chat> chats = chatRepository.findAllById(chatIds);
             person.setChats(chats);
@@ -109,9 +79,4 @@ public class UserService{
             ResponseEntity.ok().build() : ResponseEntity.status(401).build();
     }
 
-//
-//    @GetMapping("/chats")
-//    public ResponseEntity<String> getUserChats(){
-//
-//    }
 }

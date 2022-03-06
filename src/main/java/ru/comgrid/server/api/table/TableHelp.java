@@ -22,14 +22,6 @@ public enum TableHelp{;
         );
     }
 
-    public static <T> JsonArray toJson(Page<T> messagePages){
-        JsonArray messages = new JsonArray(messagePages.getNumberOfElements());
-        for (T messagePage : messagePages){
-            messages.add(gson.toJsonTree(messagePage));
-        }
-        return messages;
-    }
-
     /**
      * This method WILL change the {@code messagesRequest}
      * if it contains no borders(they are set to 0)

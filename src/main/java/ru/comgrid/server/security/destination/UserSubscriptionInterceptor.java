@@ -12,11 +12,9 @@ import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.exception.IllegalAccessException;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Component
 public class UserSubscriptionInterceptor implements ChannelInterceptor{
@@ -24,6 +22,7 @@ public class UserSubscriptionInterceptor implements ChannelInterceptor{
     private final Map<String, IndividualDestinationInterceptor> individualDestinationInterceptors;
 
     public UserSubscriptionInterceptor(List<IndividualDestinationInterceptor> individualDestinationInterceptors){
+        System.out.println(individualDestinationInterceptors);
         this.individualDestinationInterceptors =
             individualDestinationInterceptors
                 .stream()
@@ -46,24 +45,23 @@ public class UserSubscriptionInterceptor implements ChannelInterceptor{
         return message;
     }
 
-    private static final int destinationIndex = 2;
-    private static final int destinationIdIndex = 4;
+    private static final int DESTINATION_INDEX = 2;
+    private static final int DESTINATION_ID_INDEX = 3;
     /**
      * fullDestination looks somewhat like this:
-     * /app/{destination}/queue/{destinationId}
+     * /connection/{destination}/{destinationId}
      * so if we split it, destination would be on 2nd index, and destinationId on 4th
      */
     private void verifyAccessGranted(StompHeaderAccessor headerAccessor){
         String[] fullDestination = extractFullDestination(headerAccessor);
-        String destinationId = fullDestination[destinationIdIndex];
-        String destination = fullDestination[destinationIndex];
+        String destinationId = fullDestination[DESTINATION_ID_INDEX];
+        String destination = fullDestination[DESTINATION_INDEX];
 
         OAuth2AuthenticationToken user = ((OAuth2AuthenticationToken) headerAccessor.getUser());
-        assert user != null;
-        BigDecimal id = UserHelp.extractId(user.getPrincipal());
+        BigDecimal userId = UserHelp.extractId(user.getPrincipal());
 
-        if(!individualDestinationInterceptors.get(destination).hasAccess(id, destinationId)){
-            throw new IllegalAccessException("User has no access to this destination");
+        if(!individualDestinationInterceptors.get(destination).hasAccess(userId, destinationId)){
+            throw new IllegalAccessException("destination." + destination);
         }
     }
 
@@ -73,7 +71,7 @@ public class UserSubscriptionInterceptor implements ChannelInterceptor{
         if(destinations.size() != 1)
             throw new IllegalArgumentException("Multiple destinations is not supported");
         String[] fullDestination = destinations.get(0).split("/");
-        if(fullDestination.length != 5)
+        if(fullDestination.length != 4)
             throw new IllegalArgumentException("Destination is not correct: " + destinations.get(0));
         return fullDestination;
     }

@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URI;
+import java.security.Principal;
 import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
@@ -51,6 +52,7 @@ public class HttpLoggingFilter extends OncePerRequestFilter{
 			Map<String, List<String>> headers = extractHeaders(responseWrapper);
 			headers.put("body", List.of(IOUtils.toString(responseWrapper.getContentInputStream(), UTF_8)));
 
+			Principal principal = request.getUserPrincipal();
 			HttpTrace httpTrace = new HttpTrace(
 				new HttpTrace.Request(
 					requestWrapper.getMethod(),
@@ -60,7 +62,7 @@ public class HttpLoggingFilter extends OncePerRequestFilter{
 				),
 				new HttpTrace.Response(status, headers),
 				Instant.now(),
-				new HttpTrace.Principal(request.getUserPrincipal().getName()),
+				new HttpTrace.Principal(principal == null ? null : principal.getName()),
 				new HttpTrace.Session(request.getSession().getId()),
 				System.nanoTime() - startTime
 			);
@@ -82,7 +84,8 @@ public class HttpLoggingFilter extends OncePerRequestFilter{
 		private static final Set<String> ignoredRequests = Set.of(
 			"/httptrace",
 			"/example_messaging",
-			"/example_post"
+			"/example_post",
+			"/image/upload"
 		);
 		private static final Set<Pattern> ignoredPatterns = Set.of(
 			Pattern.compile(".*\\.css"),

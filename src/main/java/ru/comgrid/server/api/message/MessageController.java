@@ -1,9 +1,6 @@
 package ru.comgrid.server.api.message;
 
-import io.swagger.v3.oas.annotations.ExternalDocumentation;
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import org.jetbrains.annotations.NotNull;
@@ -35,51 +32,29 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/message", produces = "application/json; charset=utf-8")
-public class MessageService{
+public class MessageController{
 
     private final MessageRepository messageRepository;
     private final AccessService accessService;
     private final ChatRepository chatRepository;
     private final CellUnionRepository cellUnionRepository;
-    private final int maxMessagesSize;
     private final int defaultPageSize;
 
-    public MessageService(
+    public MessageController(
         @Autowired MessageRepository messageRepository,
         @Autowired AccessService accessService,
         @Autowired ChatRepository chatRepository,
         @Autowired CellUnionRepository cellUnionRepository,
-        @Value("${ru.comgrid.chat.messages.max}") int maxMessagesSize,
         @Value("${ru.comgrid.chat.participants.default-page-size}") int defaultPageSize
     ){
         this.messageRepository = messageRepository;
         this.chatRepository = chatRepository;
         this.cellUnionRepository = cellUnionRepository;
-        this.maxMessagesSize = maxMessagesSize;
         this.accessService = accessService;
         this.defaultPageSize = defaultPageSize;
     }
 
-    /**
-     * Get messages in square, that has top left corner to be in (xCoordLeftTop, yCoordLeftTop) point
-     * and bottom right corner to be in (xCoordBottomRight, yCoordBottomRight) point.
-     * Parameters:
-     * <pre>
-     | param               | includes | description                                                                  |
-     |---------------------|----------|------------------------------------------------------------------------------|
-     | chatId              | optional | unique chatId                                                                |
-     | xCoordLeftTop       | optional | Top left point of square's x coord(default 0)                                |
-     | yCoordLeftTop       | optional | Top left point of square's y coord(default 0)                                |
-     | xCoordRightBottom   | optional | Bottom right point of square's x coord(default width-1)                      |
-     | yCoordRightBottom   | optional | Bottom right point of square's y coord(default height-1)                     |
-     | amountOfMessages    | optional | Amount of messages that will be loaded(maximum available 100, default is 50) |
-     | sinceDateTimeMillis | optional | Minimum time of messages to include(default no limit)                        |
-     | untilDateTimeMillis | optional | Maximum time of messages to include(default no limit)                        |
-     * </pre>
-     * @param user Authenticated user from Spring security
-     * @param messagesRequest chat object accommodating all parameters
-     * @return {@link Message} list in json format
-     */
+
     @Operation(summary = "get messages of chat", description = "Get messages of table in given square with specified topLeft and bottomRight point.")
     @PostMapping("/list")
     public ResponseEntity<List<Message>> getMessages(
@@ -90,9 +65,6 @@ public class MessageService{
 
         if(!accessService.hasAccessTo(userId, messagesRequest.chatId, Right.Read))
             throw new IllegalAccessException("chat.read_messages");
-
-        if(messagesRequest.amountOfMessages > maxMessagesSize)
-            throw new TooBigRequestException("chat_messages", maxMessagesSize);
 
         if(messagesRequest.amountOfMessages < 0)
             throw new WrongRequestException("messages.negative");

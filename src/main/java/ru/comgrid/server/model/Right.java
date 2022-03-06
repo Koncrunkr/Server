@@ -2,13 +2,14 @@ package ru.comgrid.server.model;
 
 public enum Right{
     Read,
-    Write,
-    OverrideOthersMessages,
+    SendMessages,
+    EditOwnMessages,
+    EditOthersMessages,
     UseMedia,
     ManageUsers,
     AddUsers,
     RemoveUsers,
     CreateCellUnions,
-    EditCellUnions,
+    EditOwnCellUnions,
     EditOthersCellUnions;
 }

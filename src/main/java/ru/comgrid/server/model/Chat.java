@@ -1,7 +1,13 @@
 package ru.comgrid.server.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,7 +36,7 @@ import java.time.ZoneOffset;
  * </pre>
  */
 @Entity
-public class Chat implements Serializable, Jsonable{
+public class Chat implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(nullable = false)
@@ -42,7 +48,7 @@ public class Chat implements Serializable, Jsonable{
     private String name;
 
     @Column(precision = 40, nullable = false)
-//    @ManyToOne(targetEntity = Person.class, optional = false)
+    @JsonSerialize(using = ToStringSerializer.class)
     @Getter
     @Setter
     private BigDecimal creator;
@@ -57,6 +63,7 @@ public class Chat implements Serializable, Jsonable{
     @Column(nullable = false)
     private Integer height;
 
+    @Schema(defaultValue = "url")
     @Getter
     @Setter
     @Column(nullable = false)
@@ -69,7 +76,6 @@ public class Chat implements Serializable, Jsonable{
 
     @Getter
     @Setter
-//    @OneToOne(targetEntity = Message.class)
     @Column
     private Long lastMessageId;
 
@@ -96,33 +102,5 @@ public class Chat implements Serializable, Jsonable{
         this.width = width;
         this.height = height;
         this.avatar = avatar;
-    }
-
-    @Override
-    public JsonObject toJson(){
-        JsonObject jsonObject = new JsonObject();
-
-        jsonObject.addProperty("id", id);
-        jsonObject.addProperty("name", name);
-        jsonObject.addProperty("creator", creator.toString());
-        jsonObject.addProperty("width", width);
-        jsonObject.addProperty("height", height);
-        jsonObject.addProperty("avatar", avatar);
-        jsonObject.addProperty("created", created.getNano()/1_000_000 + created.toEpochSecond(ZoneOffset.UTC)*1000);
-
-        if(participants != null){
-            JsonArray participantsJson = new JsonArray();
-            for (var participant : participants){
-                participantsJson.add(participant.toJson());
-            }
-            jsonObject.add("participants", participantsJson);
-        }
-
-        return jsonObject;
-    }
-
-    @Override
-    public String toString(){
-        return toJson().toString();
     }
 }

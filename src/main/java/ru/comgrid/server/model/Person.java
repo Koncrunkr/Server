@@ -1,8 +1,12 @@
 package ru.comgrid.server.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.domain.Persistable;
@@ -27,9 +31,10 @@ import java.util.Date;
  * </pre>
  */
 @Entity
-public class Person implements Serializable, Persistable<BigDecimal>, Jsonable{
+public class Person implements Serializable, Persistable<BigDecimal>{
     @Id
     @Getter
+    @JsonSerialize(using = ToStringSerializer.class)
     @Column(precision = 40)
     private BigDecimal id;
 
@@ -44,6 +49,7 @@ public class Person implements Serializable, Persistable<BigDecimal>, Jsonable{
     private String email;
 
     @Column(nullable = false)
+    @Schema(defaultValue = "url")
     @Getter
     @Setter
     private String avatar;
@@ -90,27 +96,4 @@ public class Person implements Serializable, Persistable<BigDecimal>, Jsonable{
     }
 
     public Person() {}
-
-    @Override
-    public JsonObject toJson(){
-        var json = new JsonObject();
-        json.addProperty("id", id.toString());
-        json.addProperty("name", name);
-        json.addProperty("email", email);
-        json.addProperty("avatar", avatar);
-
-        if(chats != null){
-            JsonArray jsonChats = new JsonArray();
-            for(Chat chat : chats){
-                jsonChats.add(chat.toJson());
-            }
-            json.add("chats", jsonChats);
-        }
-        return json;
-    }
-
-    @Override
-    public String toString(){
-        return toJson().toString();
-    }
 }
