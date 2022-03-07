@@ -128,22 +128,22 @@ public class MessageController{
                 ycoordLeftTop,
                 xcoordRightBottom,
                 ycoordRightBottom
-            ).getContent());
+            ));
     }
 
 
     public ResponseEntity<List<Message>> getLastMessages(@NotNull MessagesRequest messagesRequest){
-        Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenOrderByTimeDesc(
+        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenOrderByTimeDesc(
             messagesRequest.chatId, messagesRequest.xcoordLeftTop, messagesRequest.xcoordRightBottom,
             messagesRequest.ycoordLeftTop, messagesRequest.ycoordRightBottom
         );
 
-        return ResponseEntity.ok(messages.getContent());
+        return ResponseEntity.ok(messages);
     }
     public ResponseEntity<List<Message>> getMessagesUntil(@NotNull MessagesRequest messagesRequest){
         LocalDateTime until = TableHelp.toDateTime(messagesRequest.untilDateTimeMillis);
 
-        Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeBeforeOrderByTimeDesc(
+        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeBeforeOrderByTimeDesc(
             messagesRequest.chatId,
             messagesRequest.xcoordLeftTop,
             messagesRequest.xcoordRightBottom,
@@ -152,12 +152,12 @@ public class MessageController{
             until
         );
 
-        return ResponseEntity.ok(messages.getContent());
+        return ResponseEntity.ok(messages);
     }
     public ResponseEntity<List<Message>> getMessagesSince(@NotNull MessagesRequest messagesRequest){
         LocalDateTime since = TableHelp.toDateTime(messagesRequest.sinceDateTimeMillis);
 
-        Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeAfterOrderByTimeDesc(
+        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeAfterOrderByTimeDesc(
             messagesRequest.chatId,
             messagesRequest.xcoordLeftTop,
             messagesRequest.xcoordRightBottom,
@@ -166,13 +166,13 @@ public class MessageController{
             since
         );
 
-        return ResponseEntity.ok(messages.getContent());
+        return ResponseEntity.ok(messages);
     }
     public ResponseEntity<List<Message>> getMessagesBetween(@NotNull MessagesRequest messagesRequest){
         LocalDateTime since = TableHelp.toDateTime(messagesRequest.sinceDateTimeMillis);
         LocalDateTime until = TableHelp.toDateTime(messagesRequest.untilDateTimeMillis);
 
-        Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeBetweenOrderByTimeDesc(
+        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeBetweenOrderByTimeDesc(
             messagesRequest.chatId,
             messagesRequest.xcoordLeftTop,
             messagesRequest.xcoordRightBottom,
@@ -182,6 +182,6 @@ public class MessageController{
             until
         );
 
-        return ResponseEntity.ok(messages.getContent());
+        return ResponseEntity.ok(messages);
     }
 }

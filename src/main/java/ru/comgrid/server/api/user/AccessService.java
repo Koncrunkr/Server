@@ -33,22 +33,19 @@ public class AccessService{
     private final MessageRepository messageRepository;
     private final CellUnionRepository cellUnionRepository;
     private final ChatRepository chatRepository;
-    private final int defaultPageSize;
 
     public AccessService(
         @Autowired ChatParticipantsRepository participantsRepository,
         @Autowired SimpMessagingTemplate messagingTemplate,
         @Autowired MessageRepository messageRepository,
         @Autowired CellUnionRepository cellUnionRepository,
-        @Autowired ChatRepository chatRepository,
-        @Value("${ru.comgrid.chat.default-page-size}") int defaultPageSize
+        @Autowired ChatRepository chatRepository
     ){
         this.participantsRepository = participantsRepository;
         this.messagingTemplate = messagingTemplate;
         this.messageRepository = messageRepository;
         this.cellUnionRepository = cellUnionRepository;
         this.chatRepository = chatRepository;
-        this.defaultPageSize = defaultPageSize;
     }
 
     public boolean hasAccessTo(Person person, long chatId, Right right){
@@ -190,13 +187,12 @@ public class AccessService{
             );
         }
 
-        Page<CellUnion> cellUnionsIntersected = cellUnionRepository.findAllByChat(
+        List<CellUnion> cellUnionsIntersected = cellUnionRepository.findAllByChat(
             cellUnion.getChatId(),
             cellUnion.getXcoordLeftTop(),
             cellUnion.getYcoordLeftTop(),
             cellUnion.getXcoordRightBottom(),
-            cellUnion.getYcoordRightBottom(),
-            Pageable.ofSize(defaultPageSize)
+            cellUnion.getYcoordRightBottom()
         );
 
         List<CellUnion> inside = new ArrayList<>();

@@ -54,9 +54,8 @@ public class UserController{
 
         if(includeChats){
             List<Long> chatIds = chatParticipantsRepository.findAllChatsByPerson(
-                person.getId(),
-                Pageable.unpaged()
-            ).getContent();
+                person.getId()
+            );
             Iterable<Chat> chats = chatRepository.findAllById(chatIds);
             person.setChats(chats);
         }

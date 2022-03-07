@@ -9,12 +9,13 @@ import org.springframework.data.repository.query.Param;
 import ru.comgrid.server.model.Message;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 
 public interface MessageRepository extends JpaRepository<Message, Long>{
     Optional<Message> findMessageByChatIdAndXAndY(@Param("chatId") Long chatId, @Param("x") Integer x, @Param("y") Integer y);
 
-    Page<Message> findAllByChatIdAndXBetweenAndYBetweenOrderByTimeDesc(
+    List<Message> findAllByChatIdAndXBetweenAndYBetweenOrderByTimeDesc(
         @Param("chatId") Long chatId,
         @Param("startX") Integer startX,
         @Param("endX") Integer endX,
@@ -22,7 +23,7 @@ public interface MessageRepository extends JpaRepository<Message, Long>{
         @Param("endY") Integer endY
     );
 
-    Page<Message> findAllByChatIdAndXBetweenAndYBetweenAndTimeBeforeOrderByTimeDesc(
+    List<Message> findAllByChatIdAndXBetweenAndYBetweenAndTimeBeforeOrderByTimeDesc(
         Long chatId,
         Integer startX,
         Integer endX,
@@ -31,7 +32,7 @@ public interface MessageRepository extends JpaRepository<Message, Long>{
         LocalDateTime endTime
     );
 
-    Page<Message> findAllByChatIdAndXBetweenAndYBetweenAndTimeBetweenOrderByTimeDesc(
+    List<Message> findAllByChatIdAndXBetweenAndYBetweenAndTimeBetweenOrderByTimeDesc(
         Long chatId,
         Integer startX,
         Integer endX,
@@ -41,7 +42,7 @@ public interface MessageRepository extends JpaRepository<Message, Long>{
         LocalDateTime endTime
     );
 
-    Page<Message> findAllByChatIdAndXBetweenAndYBetweenAndTimeAfterOrderByTimeDesc(
+    List<Message> findAllByChatIdAndXBetweenAndYBetweenAndTimeAfterOrderByTimeDesc(
         Long chatId,
         Integer startX,
         Integer endX,

@@ -107,9 +107,8 @@ public class TableController{
 
         if(includeParticipants){
             List<BigDecimal> personIds = participantsRepository.findAllByChat(
-                chatId,
-                Pageable.unpaged()
-            ).getContent();
+                chatId
+            );
             Iterable<Person> participants = personRepository.findAllById(personIds);
             chat.setParticipants(participants);
         }
