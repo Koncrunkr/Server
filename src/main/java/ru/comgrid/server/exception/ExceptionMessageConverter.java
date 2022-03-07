@@ -6,6 +6,7 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.converter.MessageConverter;
 import org.springframework.messaging.support.MessageBuilder;
 
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 
 public class ExceptionMessageConverter implements MessageConverter{
@@ -20,7 +21,7 @@ public class ExceptionMessageConverter implements MessageConverter{
 			return null;
 		}
 		return MessageBuilder
-			.withPayload("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 500, \"reason\": \"" + exception.getMessage() + "\"}")
+			.withPayload(("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 422, \"reason\": \"" + exception.getMessage() + "\"}").getBytes(StandardCharsets.UTF_8))
 			.copyHeaders(headers)
 			.build();
 	}

@@ -111,6 +111,7 @@ public class TableMessaging{
         if(!accessService.hasAccessToCreateCellUnion(personId, newCellUnion)){
             return;
         }
+        newCellUnion.setCreatorId(personId);
 
         CellUnion cellUnion = cellUnionRepository.save(newCellUnion);
         messagingTemplate.convertAndSend(tableDestination(cellUnion.getChatId()), cellUnion);
@@ -126,6 +127,7 @@ public class TableMessaging{
         if(!accessService.hasAccessToEditCellUnion(personId, newCellUnion)){
             return;
         }
+        newCellUnion.setCreatorId(personId);
 
         CellUnion cellUnion = cellUnionRepository.save(newCellUnion);
         messagingTemplate.convertAndSend(tableDestination(cellUnion.getChatId()), cellUnion);

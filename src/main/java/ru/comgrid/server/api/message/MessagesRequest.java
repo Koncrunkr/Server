@@ -11,7 +11,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class MessagesRequest extends MessageUnionRequest{
-    public int amountOfMessages;
     public long sinceDateTimeMillis;
     public long untilDateTimeMillis;
 }

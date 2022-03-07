@@ -20,8 +20,7 @@ public interface CellUnionRepository extends JpaRepository<CellUnion, Long>{
         int xcoordLeftTop,
         int ycoordLeftTop,
         int xcoordRightBottom,
-        int ycoordRightBottom,
-        Pageable pageable
+        int ycoordRightBottom
     );
 
     @Query("""

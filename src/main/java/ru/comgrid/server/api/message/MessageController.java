@@ -38,20 +38,17 @@ public class MessageController{
     private final AccessService accessService;
     private final ChatRepository chatRepository;
     private final CellUnionRepository cellUnionRepository;
-    private final int defaultPageSize;
 
     public MessageController(
         @Autowired MessageRepository messageRepository,
         @Autowired AccessService accessService,
         @Autowired ChatRepository chatRepository,
-        @Autowired CellUnionRepository cellUnionRepository,
-        @Value("${ru.comgrid.chat.participants.default-page-size}") int defaultPageSize
+        @Autowired CellUnionRepository cellUnionRepository
     ){
         this.messageRepository = messageRepository;
         this.chatRepository = chatRepository;
         this.cellUnionRepository = cellUnionRepository;
         this.accessService = accessService;
-        this.defaultPageSize = defaultPageSize;
     }
 
 
@@ -65,12 +62,6 @@ public class MessageController{
 
         if(!accessService.hasAccessTo(userId, messagesRequest.chatId, Right.Read))
             throw new IllegalAccessException("chat.read_messages");
-
-        if(messagesRequest.amountOfMessages < 0)
-            throw new WrongRequestException("messages.negative");
-
-        if(messagesRequest.amountOfMessages == 0)
-            messagesRequest.amountOfMessages = defaultPageSize;
 
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         Chat chat = chatRepository.findById(messagesRequest.chatId).get();
@@ -136,8 +127,7 @@ public class MessageController{
                 xcoordLeftTop,
                 ycoordLeftTop,
                 xcoordRightBottom,
-                ycoordRightBottom,
-                Pageable.ofSize(defaultPageSize)
+                ycoordRightBottom
             ).getContent());
     }
 
@@ -145,8 +135,7 @@ public class MessageController{
     public ResponseEntity<List<Message>> getLastMessages(@NotNull MessagesRequest messagesRequest){
         Page<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenOrderByTimeDesc(
             messagesRequest.chatId, messagesRequest.xcoordLeftTop, messagesRequest.xcoordRightBottom,
-            messagesRequest.ycoordLeftTop, messagesRequest.ycoordRightBottom,
-            Pageable.ofSize(messagesRequest.amountOfMessages)
+            messagesRequest.ycoordLeftTop, messagesRequest.ycoordRightBottom
         );
 
         return ResponseEntity.ok(messages.getContent());
@@ -160,8 +149,7 @@ public class MessageController{
             messagesRequest.xcoordRightBottom,
             messagesRequest.ycoordLeftTop,
             messagesRequest.ycoordRightBottom,
-            until,
-            Pageable.ofSize(messagesRequest.amountOfMessages)
+            until
         );
 
         return ResponseEntity.ok(messages.getContent());
@@ -175,8 +163,7 @@ public class MessageController{
             messagesRequest.xcoordRightBottom,
             messagesRequest.ycoordLeftTop,
             messagesRequest.ycoordRightBottom,
-            since,
-            Pageable.ofSize(messagesRequest.amountOfMessages)
+            since
         );
 
         return ResponseEntity.ok(messages.getContent());
@@ -192,8 +179,7 @@ public class MessageController{
             messagesRequest.ycoordLeftTop,
             messagesRequest.ycoordRightBottom,
             since,
-            until,
-            Pageable.ofSize(messagesRequest.amountOfMessages)
+            until
         );
 
         return ResponseEntity.ok(messages.getContent());

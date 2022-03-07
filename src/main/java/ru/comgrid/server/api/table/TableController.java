@@ -49,7 +49,6 @@ public class TableController{
     private final PersonRepository personRepository;
 
     private final AccessService accessService;
-    private final int defaultPageSize;
 
     /**
      * @hidden
@@ -58,15 +57,12 @@ public class TableController{
         @Autowired ChatRepository chatRepository,
         @Autowired ChatParticipantsRepository participantsRepository,
         @Autowired PersonRepository personRepository,
-        @Autowired AccessService accessService,
-        @Autowired CellUnionRepository cellUnionRepository,
-        @Value("${ru.comgrid.chat.participants.default-page-size}") int defaultPageSize
+        @Autowired AccessService accessService
     ){
         this.chatRepository = chatRepository;
         this.participantsRepository = participantsRepository;
         this.personRepository = personRepository;
         this.accessService = accessService;
-        this.defaultPageSize = defaultPageSize;
     }
 
     @Operation()
