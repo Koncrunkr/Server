@@ -27,7 +27,6 @@ public class UserController{
     private final PersonRepository personRepository;
     private final ChatParticipantsRepository chatParticipantsRepository;
     private final ChatRepository chatRepository;
-    private final int defaultPageSize;
 
     /**
      * @hidden
@@ -35,13 +34,11 @@ public class UserController{
     public UserController(
         PersonRepository personRepository,
         ChatParticipantsRepository chatParticipantsRepository,
-        ChatRepository chatRepository,
-        @Value("${ru.comgrid.chat.default-page-size}") int defaultPageSize
+        ChatRepository chatRepository
     ){
         this.personRepository = personRepository;
         this.chatParticipantsRepository = chatParticipantsRepository;
         this.chatRepository = chatRepository;
-        this.defaultPageSize = defaultPageSize;
     }
 
 
