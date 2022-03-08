@@ -63,7 +63,7 @@ public class HttpLoggingFilter extends OncePerRequestFilter{
 				new HttpTrace.Response(status, headers),
 				Instant.now(),
 				new HttpTrace.Principal(principal == null ? null : principal.getName()),
-				new HttpTrace.Session(request.getSession().getId()),
+				new HttpTrace.Session(request.getSession(false) == null ? null : request.getSession(false).getId()),
 				System.nanoTime() - startTime
 			);
 			httpTraceRepository.add(httpTrace);

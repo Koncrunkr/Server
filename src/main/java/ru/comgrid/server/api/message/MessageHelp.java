@@ -2,6 +2,7 @@ package ru.comgrid.server.api.message;
 
 import org.jetbrains.annotations.NotNull;
 
+
 import java.math.BigDecimal;
 
 
@@ -19,3 +20,4 @@ public enum MessageHelp{;
 	    return TABLE_DESTINATION + chatId;
 	}
 }
+

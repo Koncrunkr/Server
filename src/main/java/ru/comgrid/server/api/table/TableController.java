@@ -13,8 +13,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
+import ru.comgrid.server.api.util.FileController;
 import ru.comgrid.server.exception.IllegalAccessException;
 import ru.comgrid.server.exception.WrongRequestException;
 import ru.comgrid.server.model.Chat;
@@ -26,6 +28,7 @@ import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.PersonRepository;
 import ru.comgrid.server.util.EnumSet0;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
@@ -44,6 +47,7 @@ public class TableController{
     private final ChatRepository chatRepository;
     private final ChatParticipantsRepository participantsRepository;
     private final PersonRepository personRepository;
+    private final FileController fileController;
 
     private final AccessService accessService;
 
@@ -51,25 +55,27 @@ public class TableController{
      * @hidden
      */
     public TableController(
-        @Autowired ChatRepository chatRepository,
-        @Autowired ChatParticipantsRepository participantsRepository,
-        @Autowired PersonRepository personRepository,
-        @Autowired AccessService accessService
+            @Autowired ChatRepository chatRepository,
+            @Autowired ChatParticipantsRepository participantsRepository,
+            @Autowired PersonRepository personRepository,
+            @Autowired FileController fileController,
+            @Autowired AccessService accessService
     ){
         this.chatRepository = chatRepository;
         this.participantsRepository = participantsRepository;
         this.personRepository = personRepository;
+        this.fileController = fileController;
         this.accessService = accessService;
     }
 
-    @Operation()
-    @PostMapping("/create")
+    @PostMapping(value = "/create")
     public ResponseEntity<Chat> createTable(
         @AuthenticationPrincipal OAuth2User user,
-        @RequestBody NewChat newChat
+        @ModelAttribute NewChat newChat
     ){
+        FileController.ImageEntity imageEntity = fileController.uploadImage(newChat.file);
         var userId = UserHelp.extractId(user);
-        Chat chat = new Chat(userId, newChat.name, newChat.width, newChat.height, newChat.avatar);
+        Chat chat = new Chat(userId, newChat.name, newChat.width, newChat.height, imageEntity.getUrl());
         chat.setCreated(LocalDateTime.now(Clock.systemUTC()));
         chat = chatRepository.save(chat);
         participantsRepository.save(new TableParticipants(chat.getId(), userId, EnumSet0.allOf(Right.class), LocalDateTime.now(Clock.systemUTC())));
@@ -79,13 +85,12 @@ public class TableController{
     @Getter
     @AllArgsConstructor
     @NoArgsConstructor
-    private static class NewChat{
+    private static class NewChat implements Serializable {
         @Schema(defaultValue = "name")
         private String name;
         private int width;
         private int height;
-        @Schema(defaultValue = "url")
-        private String avatar;
+        private MultipartFile file;
     }
 
 

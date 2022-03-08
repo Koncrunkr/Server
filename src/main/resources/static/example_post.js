@@ -1,17 +1,17 @@
 
 function postCreateTable(){
+    let avatar = document.getElementById('avatar');
+    var data = new FormData()
+    data.append('file', avatar.files[0])
+    data.append('name', $("#name").val())
+    data.append('width', $("#width").val())
+    data.append('height', $("#height").val())
     fetch(
         "/table/create",
         {
             method: "POST",
             credentials: "include",
-            headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({
-                "name": $("#name").val(),
-                "avatar": $("#avatar").val(),
-                "width": parseInt($("#width").val()),
-                "height": parseInt($("#height").val())
-            })
+            body: data
         }
     ).then(
         response => response.text()
