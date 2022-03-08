@@ -1,8 +1,5 @@
 package ru.comgrid.server.api.table;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import org.springframework.data.domain.Page;
 import ru.comgrid.server.api.message.MessageUnionRequest;
 import ru.comgrid.server.api.message.MessagesRequest;
 import ru.comgrid.server.model.CellUnion;
@@ -12,7 +9,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
 public enum TableHelp{;
-    public static final Gson gson = new Gson();
 
     public static LocalDateTime toDateTime(long millis){
         return LocalDateTime.ofEpochSecond(

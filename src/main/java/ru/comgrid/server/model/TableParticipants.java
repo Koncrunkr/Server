@@ -9,11 +9,8 @@ import ru.comgrid.server.util.RegularEnumSet0;
 
 import javax.persistence.*;
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.EnumSet;
-
 
 @Entity
 @IdClass(TableParticipant.class)

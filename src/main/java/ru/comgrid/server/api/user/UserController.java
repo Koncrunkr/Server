@@ -2,21 +2,23 @@ package ru.comgrid.server.api.user;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import ru.comgrid.server.model.Person;
 import ru.comgrid.server.model.Chat;
+import ru.comgrid.server.model.Right;
 import ru.comgrid.server.repository.ChatParticipantsRepository;
 import ru.comgrid.server.repository.PersonRepository;
 import ru.comgrid.server.repository.ChatRepository;
 
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -69,7 +71,7 @@ public class UserController{
         @ApiResponse(responseCode = "401", description = "User is not logged in", content = @Content()),
     })
     @GetMapping("/login")
-    public ResponseEntity<String> getUserInfo(){
+    public ResponseEntity<String> checkIfUserLoggedIn(){
         return SecurityContextHolder.getContext().getAuthentication() != null &&
             SecurityContextHolder.getContext().getAuthentication().isAuthenticated() ?
             ResponseEntity.ok().build() : ResponseEntity.status(401).build();
