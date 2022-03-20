@@ -17,12 +17,20 @@ public class ExceptionMessageConverter implements MessageConverter{
 
 	@Override
 	public Message<?> toMessage(@NotNull Object payload, MessageHeaders headers){
-		if(!(payload instanceof WrongRequestException exception)){
+		if(!(payload instanceof RequestException exception)){
 			return null;
 		}
 		return MessageBuilder
-			.withPayload(("{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 422, \"reason\": \"" + exception.getMessage() + "\"}").getBytes(StandardCharsets.UTF_8))
-			.copyHeaders(headers)
+			.withPayload(("""
+				{
+					"timestamp": "%s",
+					"status": %d,
+					"reason": "%s"
+				}
+				""")
+				.formatted(LocalDateTime.now(), exception.getCode(), exception.getMessage())
+				.getBytes(StandardCharsets.UTF_8)
+			).copyHeaders(headers)
 			.build();
 	}
 }

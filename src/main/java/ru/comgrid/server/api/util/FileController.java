@@ -1,49 +1,113 @@
 package ru.comgrid.server.api.util;
 
 import lombok.*;
-import org.apache.commons.io.FilenameUtils;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.beans.factory.annotation.Value;
-import ru.comgrid.server.exception.ImageEmptyParamException;
-import ru.comgrid.server.exception.ImageWriteToFileException;
+import ru.comgrid.server.exception.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+
+import static org.springframework.util.StringUtils.getFilenameExtension;
 
 @Controller
 @RequestMapping(value = "/file", produces = "application/json; charset=utf-8")
 public class FileController{
-	public final String FILE_ROUTE;
+	public final String fileRoute;
+	private final ImageService imageService;
+	private final RestTemplate restTemplate = new RestTemplate();
+	private final Set<String> allowedExtensions;
 
-	public FileController(@Value("${ru.comgrid.server.api.util.file-controller.image-path}") String FILE_ROUTE){
-		this.FILE_ROUTE = FILE_ROUTE;
-		new File(FILE_ROUTE).mkdirs();
+	public FileController(
+		@Value("${ru.comgrid.server.file-controller.image-path}") String fileRoute,
+		@Value("${ru.comgrid.server.image-compressor.allowed-extensions}") List<String> allowedExtensions,
+		@Autowired ImageService imageService
+	) throws IOException{
+		this.fileRoute = fileRoute;
+		this.allowedExtensions = new HashSet<>(allowedExtensions);
+		this.imageService = imageService;
+		Files.createDirectories(Path.of(fileRoute));
 	}
 
-	public ImageEntity uploadImage(@RequestParam("file") MultipartFile multipartFile){
-		if(!multipartFile.isEmpty()){
-			String imageUrl = getImageUrl(multipartFile);
-			try {
-				byte[] bytes = multipartFile.getBytes();
-				Files.write(Path.of(imageUrl), bytes);
-				return new ImageEntity(imageUrl);
-			} catch (IOException e) {
-				e.printStackTrace();
-				throw new ImageWriteToFileException();
+	/**
+	 * Uploads file it is not yet uploaded and returns link to it.
+	 * Either file or fileLink has to be specified.
+	 * @param file uploaded file or null
+	 * @param fileLink link to file or null
+	 * @return relative link to file
+	 */
+	public ImageEntity uploadImage(@Nullable MultipartFile file, @Nullable String fileLink){
+		String imagePath = getNewImageUrl();
+		try {
+			if(file == null || file.isEmpty()){
+				return getImageFromLink(fileLink, imagePath);
 			}
-		}else{
-			throw new ImageEmptyParamException();
+			byte[] bytes = imageService.compressImage(file.getBytes());
+			Files.write(Path.of(imagePath), bytes);
+			return new ImageEntity(imagePath);
+		} catch (IOException e) {
+			throw new ImageWriteToFileException();
 		}
 	}
 
-	public String getImageUrl(MultipartFile file){
-		return FILE_ROUTE + UUID.randomUUID() + "." + FilenameUtils.getExtension(file.getOriginalFilename());
+	@GetMapping
+	public ResponseEntity<byte[]> getFile(String fileLink){
+		if(!fileLink.startsWith(fileRoute))
+			throw new InvalidLinkException();
+
+		try{
+			String filenameExtension = getFilenameExtension(fileLink);
+			if(filenameExtension == null)
+				throw new InvalidLinkException();
+			if(!allowedExtensions.contains(filenameExtension))
+				throw new InvalidLinkException();
+			//check whether it's legal uuid string
+			UUID.fromString(fileLink.substring(fileRoute.length(), fileLink.length() - filenameExtension.length() - 1));
+			return ResponseEntity
+				.ok()
+				.contentType(new MediaType("image", filenameExtension))
+				.body(Files.readAllBytes(Path.of(fileLink)));
+		}catch(IllegalArgumentException | NullPointerException | IOException | StringIndexOutOfBoundsException e){
+			throw new InvalidLinkException();
+		}
+	}
+
+	@NotNull
+	private ImageEntity getImageFromLink(String fileLink, String imagePath) throws IOException{
+		if(fileLink == null){
+			throw new ImageEmptyParamException();
+		}
+		if(fileLink.startsWith("/images/")){
+			checkFileExists(fileLink);
+			return new ImageEntity(fileLink);
+		}
+		byte[] bytes = imageService.compressImage(fileLink);
+		Files.write(Path.of(imagePath), bytes);
+		return new ImageEntity();
+	}
+
+	private void checkFileExists(String fileLink){
+		if(!Files.exists(Path.of(fileLink), LinkOption.NOFOLLOW_LINKS))
+			throw new ImageDoesNotExistException(fileLink);
+	}
+
+	private String getNewImageUrl(){
+		return fileRoute + UUID.randomUUID() + ".webp";
 	}
 
 

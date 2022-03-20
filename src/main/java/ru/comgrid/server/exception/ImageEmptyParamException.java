@@ -1,7 +1,7 @@
 package ru.comgrid.server.exception;
 
-public class ImageEmptyParamException extends WrongRequestException{
+public class ImageEmptyParamException extends RequestException{
     public ImageEmptyParamException() {
-        super("image.empty");
+        super(400, "image.empty");
     }
 }

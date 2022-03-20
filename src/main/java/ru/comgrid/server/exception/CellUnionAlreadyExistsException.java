@@ -1,7 +1,7 @@
 package ru.comgrid.server.exception;
 
-public class CellUnionAlreadyExistsException extends WrongRequestException{
+public class CellUnionAlreadyExistsException extends RequestException{
 	public CellUnionAlreadyExistsException(){
-		super("cell_union.exists");
+		super(422, "cell_union.exists");
 	}
 }

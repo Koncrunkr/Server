@@ -1,7 +1,7 @@
 package ru.comgrid.server.exception;
 
-public class MessageAlreadyExistsException extends WrongRequestException{
+public class MessageAlreadyExistsException extends RequestException{
 	public MessageAlreadyExistsException(){
-		super("message.exists");
+		super(422, "message.exists");
 	}
 }

@@ -17,7 +17,7 @@ public class ExceptionHandlingController{
 
     @ApiResponse(content = @Content(), responseCode = "500")
     @ResponseStatus(value= HttpStatus.UNPROCESSABLE_ENTITY)
-    @ExceptionHandler({WrongRequestException.class})
+    @ExceptionHandler({RequestException.class})
     public String commonException(Exception exception){
         return "{\"timestamp\": \"" + LocalDateTime.now() + "\", \"status\": 422, \"reason\": \"" + exception.getMessage() + "\"}";
     }

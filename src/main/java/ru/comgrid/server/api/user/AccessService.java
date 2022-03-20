@@ -87,8 +87,8 @@ public class AccessService{
             message.getY() < chat.getHeight() && message.getY() >= 0;
     }
 
-    private void sendException(BigDecimal personId, WrongRequestException wrongRequestException){
-        messagingTemplate.convertAndSend(userDestination(personId), wrongRequestException);
+    private void sendException(BigDecimal personId, RequestException requestException){
+        messagingTemplate.convertAndSend(userDestination(personId), requestException);
     }
 
     public boolean hasAccessToEditMessage(BigDecimal personId, Message message){

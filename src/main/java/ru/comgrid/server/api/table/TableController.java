@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
@@ -18,7 +19,7 @@ import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.api.util.FileController;
 import ru.comgrid.server.exception.IllegalAccessException;
-import ru.comgrid.server.exception.WrongRequestException;
+import ru.comgrid.server.exception.RequestException;
 import ru.comgrid.server.model.Chat;
 import ru.comgrid.server.model.Person;
 import ru.comgrid.server.model.Right;
@@ -28,6 +29,9 @@ import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.PersonRepository;
 import ru.comgrid.server.util.EnumSet0;
 
+import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -68,12 +72,13 @@ public class TableController{
         this.accessService = accessService;
     }
 
-    @PostMapping(value = "/create")
+//    @Operation(requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = "multipart/form-data")))
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Chat> createTable(
         @AuthenticationPrincipal OAuth2User user,
-        @ModelAttribute NewChat newChat
+        @ModelAttribute @Valid NewChat newChat
     ){
-        FileController.ImageEntity imageEntity = fileController.uploadImage(newChat.file);
+        FileController.ImageEntity imageEntity = fileController.uploadImage(newChat.avatarFile, newChat.avatarLink);
         var userId = UserHelp.extractId(user);
         Chat chat = new Chat(userId, newChat.name, newChat.width, newChat.height, imageEntity.getUrl());
         chat.setCreated(LocalDateTime.now(Clock.systemUTC()));
@@ -86,11 +91,11 @@ public class TableController{
     @AllArgsConstructor
     @NoArgsConstructor
     private static class NewChat implements Serializable {
-        @Schema(defaultValue = "name")
-        private String name;
-        private int width;
-        private int height;
-        private MultipartFile file;
+        @NotEmpty private String name;
+        @NotNull private int width;
+        @NotNull private int height;
+        @Schema(nullable = true) private MultipartFile avatarFile;
+        @Schema(nullable = true) private String avatarLink;
     }
 
 
@@ -136,7 +141,7 @@ public class TableController{
     @PostMapping("/add_participant")
     public void addParticipant(
         @AuthenticationPrincipal OAuth2User user,
-        @RequestBody AddParticipantRequest addParticipantRequest
+        @Valid @RequestBody AddParticipantRequest addParticipantRequest
     ){
         var adminUserId = UserHelp.extractId(user);
         var newUserId = new BigDecimal(addParticipantRequest.userId);
@@ -146,11 +151,11 @@ public class TableController{
         }
 
         if(!personRepository.existsById(newUserId)){
-            throw new WrongRequestException("user.not_found");
+            throw new RequestException(404, "user.not_found");
         }
 
         if(participantsRepository.existsByChatAndPerson(addParticipantRequest.chatId, newUserId)){
-            throw new WrongRequestException("user.already_participant");
+            throw new RequestException(404, "user.already_participant");
         }
 
         participantsRepository.save(new TableParticipants(
@@ -167,9 +172,9 @@ public class TableController{
     @Getter
     @Setter
     public static class AddParticipantRequest{
-        long chatId;
+        @NotNull long chatId;
         @Schema(defaultValue = "314159265358979323846")
-        String userId;
+        @NotEmpty String userId;
     }
 }
 
