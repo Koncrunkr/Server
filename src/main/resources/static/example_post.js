@@ -2,7 +2,7 @@
 function postCreateTable(){
     let avatar = document.getElementById('avatar');
     var data = new FormData()
-    data.append('file', avatar.files[0])
+    data.append('avatarFile', avatar.files[0])
     data.append('name', $("#name").val())
     data.append('width', $("#width").val())
     data.append('height', $("#height").val())

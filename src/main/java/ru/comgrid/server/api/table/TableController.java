@@ -99,6 +99,7 @@ public class TableController{
     }
 
 
+    @ApiResponse(description = "Chat not found", responseCode = "404")
     @GetMapping("/info")
     public ResponseEntity<Chat> infoAboutTable(
         @AuthenticationPrincipal OAuth2User user,

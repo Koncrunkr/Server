@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,7 +27,7 @@ import java.util.UUID;
 import static org.springframework.util.StringUtils.getFilenameExtension;
 
 @Controller
-@RequestMapping(value = "/file", produces = "application/json; charset=utf-8")
+@RequestMapping(value = "/images")
 public class FileController{
 	public final String fileRoute;
 	private final ImageService imageService;
@@ -65,25 +66,27 @@ public class FileController{
 		}
 	}
 
-	@GetMapping
-	public ResponseEntity<byte[]> getFile(String fileLink){
+	@GetMapping("/{fileLink}")
+	public ResponseEntity<byte[]> getFile(@PathVariable String fileLink){
+		fileLink = "/images/" + fileLink;
 		if(!fileLink.startsWith(fileRoute))
-			throw new InvalidLinkException();
+			throw new InvalidLinkException(fileLink, new Throwable(Path.of("/" + fileLink).toAbsolutePath() + "_fileRoute"));
 
 		try{
 			String filenameExtension = getFilenameExtension(fileLink);
 			if(filenameExtension == null)
-				throw new InvalidLinkException();
+				throw new InvalidLinkException(fileLink, new Throwable(Path.of(fileLink).toAbsolutePath() + "_null"));
 			if(!allowedExtensions.contains(filenameExtension))
-				throw new InvalidLinkException();
+				throw new InvalidLinkException(fileLink, new Throwable(Path.of(fileLink).toAbsolutePath() + "_allo"));
 			//check whether it's legal uuid string
 			UUID.fromString(fileLink.substring(fileRoute.length(), fileLink.length() - filenameExtension.length() - 1));
+			System.out.println(Path.of("/" + fileLink).toAbsolutePath());
 			return ResponseEntity
 				.ok()
 				.contentType(new MediaType("image", filenameExtension))
 				.body(Files.readAllBytes(Path.of(fileLink)));
 		}catch(IllegalArgumentException | NullPointerException | IOException | StringIndexOutOfBoundsException e){
-			throw new InvalidLinkException();
+			throw new InvalidLinkException(fileLink, e);
 		}
 	}
 

@@ -48,6 +48,9 @@ public class MessageController{
 
 
     @Operation(summary = "get messages of chat", description = "Get messages of table in given square with specified topLeft and bottomRight point.")
+    @ApiResponse(responseCode = "403", description = "access.chat.read_messages, Cannot read messages in this chat")
+    @ApiResponse(responseCode = "422", description = "out_of_bounds")
+    @ApiResponse(responseCode = "422", description = "time.negative-or-future, means you've entered negative time or time that has not yet happened")
     @PostMapping("/list")
     public ResponseEntity<List<Message>> getMessages(
         @AuthenticationPrincipal OAuth2User user,

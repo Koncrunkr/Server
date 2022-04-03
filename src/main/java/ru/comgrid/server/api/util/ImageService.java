@@ -2,17 +2,18 @@ package ru.comgrid.server.api.util;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.web.multipart.MultipartFile;
+import ru.comgrid.server.exception.InvalidLinkException;
 
-import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.UUID;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class ImageService{
@@ -26,7 +27,11 @@ public class ImageService{
 	}
 
 	public final byte[] compressImage(String imageLink){
-		return restTemplate.getForObject(imageCompressor.toString() + "&src=" + imageLink, byte[].class);
+		try{
+			return restTemplate.getForObject(imageCompressor.toString() + "&src=" + URLEncoder.encode(imageLink, StandardCharsets.UTF_8), byte[].class);
+		}catch(HttpClientErrorException.BadRequest e){
+			throw new InvalidLinkException();
+		}
 	}
 
 	public final byte[] compressImage(byte[] image){
