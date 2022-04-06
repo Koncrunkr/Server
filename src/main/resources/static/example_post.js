@@ -56,6 +56,28 @@ function sendRequestAddPerson() {
         }
     )
 }
+function sendRequestChangeRights() {
+    fetch(
+        "/table/rights",
+        {
+            method: "POST",
+            credentials: "include",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({
+                "chatId": parseInt($("#chatIdRights").val()),
+                "userId": $("#userIdRights").val(),
+                "rights": $("#rights").val(),
+            })
+        }
+    ).then(
+        respone => {
+            respone.text().then(
+                text => $("#responses").append("<tr><td>" + "Status: " + respone.status + ", " + text + "</td></tr>")
+            )
+
+        }
+    )
+}
 
 function sendRequestMessages() {
     fetch(
@@ -81,6 +103,7 @@ function sendRequestMessages() {
     )
 }
 
+
 $(function (){
     $("form").on('submit', function (e) {
         e.preventDefault();
@@ -89,4 +112,5 @@ $(function (){
     $("#send_info").click(function() { getUserInfo(); });
     $("#send_request_add_person").click(function () {sendRequestAddPerson()})
     $("#send_request_messages").click(function () {sendRequestMessages()})
+    $("#send_request_change_rights").click(function () {sendRequestChangeRights()})
 })

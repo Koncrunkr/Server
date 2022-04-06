@@ -101,7 +101,7 @@ public class FileController{
 		}
 		byte[] bytes = imageService.compressImage(fileLink);
 		Files.write(Path.of(imagePath), bytes);
-		return new ImageEntity();
+		return new ImageEntity(imagePath);
 	}
 
 	private void checkFileExists(String fileLink){

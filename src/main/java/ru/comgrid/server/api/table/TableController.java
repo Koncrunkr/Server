@@ -19,6 +19,7 @@ import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.api.util.FileController;
 import ru.comgrid.server.exception.IllegalAccessException;
+import ru.comgrid.server.exception.OutOfBoundsRequestException;
 import ru.comgrid.server.exception.RequestException;
 import ru.comgrid.server.model.Chat;
 import ru.comgrid.server.model.Person;
@@ -80,12 +81,21 @@ public class TableController{
     ){
         FileController.ImageEntity imageEntity = fileController.uploadImage(newChat.avatarFile, newChat.avatarLink);
         var userId = UserHelp.extractId(user);
+        checkBorders(newChat.width, newChat.height);
         Chat chat = new Chat(userId, newChat.name, newChat.width, newChat.height, imageEntity.getUrl());
         chat.setCreated(LocalDateTime.now(Clock.systemUTC()));
         chat = chatRepository.save(chat);
         participantsRepository.save(new TableParticipants(chat.getId(), userId, EnumSet0.allOf(Right.class), LocalDateTime.now(Clock.systemUTC())));
         return ResponseEntity.ok(chat);
     }
+
+    private void checkBorders(int width, int height){
+        if(width <= 0 || height <= 0)
+            throw new OutOfBoundsRequestException("negative_size");
+        if(width * height > 2500)
+            throw new OutOfBoundsRequestException("too_large");
+    }
+
     @Setter
     @Getter
     @AllArgsConstructor
@@ -162,9 +172,36 @@ public class TableController{
         participantsRepository.save(new TableParticipants(
             addParticipantRequest.chatId,
             newUserId,
-            EnumSet0.of(Right.Read, Right.SendMessages),
+            EnumSet0.of(Right.Read, Right.SendMessages, Right.EditOwnMessages, Right.CreateCellUnions, Right.EditOwnCellUnions),
             LocalDateTime.now()
         ));
+    }
+
+    @PostMapping("/rights")
+    public void changeRights(
+        @AuthenticationPrincipal OAuth2User user,
+        @Valid @RequestBody ChangeRightsRequest changeRightsRequest
+    ){
+        var adminUserId = UserHelp.extractId(user);
+        var newUserId = new BigDecimal(changeRightsRequest.userId);
+
+        if(!accessService.hasAccessTo(adminUserId, changeRightsRequest.chatId, Right.ManageUsers)){
+            throw new IllegalAccessException("manage_users");
+        }
+
+        if(!personRepository.existsById(newUserId)){
+            throw new RequestException(404, "user.not_found");
+        }
+
+        TableParticipants participant = participantsRepository.findByChatAndPerson(changeRightsRequest.chatId, newUserId);
+
+        if(participant == null){
+            throw new RequestException(404, "user.not_in_chat");
+        }
+
+        participant.setRights(changeRightsRequest.getRights());
+
+        participantsRepository.save(participant);
     }
 
 
@@ -176,6 +213,18 @@ public class TableController{
         @NotNull long chatId;
         @Schema(defaultValue = "314159265358979323846")
         @NotEmpty String userId;
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    public static class ChangeRightsRequest{
+        @NotNull long chatId;
+        @Schema(defaultValue = "314159265358979323846")
+        @NotEmpty String userId;
+        @Schema(defaultValue = "3")
+        @NotNull long rights;
     }
 }
 

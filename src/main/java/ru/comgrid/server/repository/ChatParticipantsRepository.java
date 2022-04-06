@@ -20,4 +20,5 @@ public interface ChatParticipantsRepository extends JpaRepository<TableParticipa
 
     TableParticipants findByPerson(@Param("personId") BigDecimal personId);
 
+    TableParticipants findByChatAndPerson(long chatId, BigDecimal userId);
 }

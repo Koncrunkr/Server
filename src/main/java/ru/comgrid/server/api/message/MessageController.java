@@ -64,7 +64,7 @@ public class MessageController{
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         Chat chat = chatRepository.findById(messagesRequest.chatId).get();
 
-        if(TableHelp.checkBorders(chat, messagesRequest)){
+        if(TableHelp.bordersWrong(chat, messagesRequest)){
             throw new OutOfBoundsRequestException();
         }
 
@@ -115,7 +115,7 @@ public class MessageController{
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         Chat chat = chatRepository.findById(chatId).get();
 
-        if(TableHelp.checkBorders(chat, new MessageUnionRequest(chatId, xcoordLeftTop, ycoordLeftTop, xcoordRightBottom, ycoordRightBottom))){
+        if(TableHelp.bordersWrong(chat, new MessageUnionRequest(chatId, xcoordLeftTop, ycoordLeftTop, xcoordRightBottom, ycoordRightBottom))){
             throw new OutOfBoundsRequestException("chat.out_of_bounds");
         }
 

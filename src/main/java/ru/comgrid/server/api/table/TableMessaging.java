@@ -11,6 +11,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
+import ru.comgrid.server.exception.RequestException;
+import ru.comgrid.server.exception.SendIsNotAllowedException;
 import ru.comgrid.server.model.CellUnion;
 import ru.comgrid.server.model.Message;
 import ru.comgrid.server.repository.CellUnionRepository;
@@ -21,8 +23,10 @@ import ru.comgrid.server.security.destination.IndividualDestinationInterceptor;
 import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 import static ru.comgrid.server.api.message.MessageHelp.tableDestination;
+import static ru.comgrid.server.api.message.MessageHelp.userDestination;
 
 /**
  * Table messaging via SockJS(WebSocket)
@@ -48,6 +52,30 @@ public class TableMessaging{
         this.messageRepository = messageRepository;
         this.messagingTemplate = messagingTemplate;
         this.accessService = accessService;
+    }
+
+    @MessageMapping("/table_message/edit_or_send")
+    public void processNewOrEditMessage(
+        @AuthenticationPrincipal OAuth2User user,
+        @Payload Message chatMessage
+    ){
+        BigDecimal personId = UserHelp.extractId(user);
+        if(chatMessage.getId() != null){
+            processEditMessage(user, chatMessage);
+            return;
+        }
+
+        Optional<Message> message = messageRepository.findMessageByChatIdAndXAndY(chatMessage.getChatId(), chatMessage.getX(), chatMessage.getY());
+        if(message.isPresent()){
+            chatMessage.setId(message.get().getId());
+            processEditMessage(user, chatMessage);
+        }else{
+            processNewMessage(user, chatMessage);
+        }
+    }
+
+    private void sendException(BigDecimal personId, RequestException requestException){
+        messagingTemplate.convertAndSend(userDestination(personId), requestException);
     }
 
     @MessageMapping("/table_message")

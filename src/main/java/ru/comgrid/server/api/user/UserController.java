@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
@@ -65,15 +66,25 @@ public class UserController{
         return ResponseEntity.ok(person);
     }
 
+    private static final SimpleGrantedAuthority anonymous = new SimpleGrantedAuthority("ROLE_ANONYMOUS");
+
     @Operation(summary = "Check if user is logged in")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "User is logged in", content = @Content()),
         @ApiResponse(responseCode = "401", description = "User is not logged in", content = @Content()),
     })
     @GetMapping("/login")
-    public ResponseEntity<String> checkIfUserLoggedIn(){
+    public ResponseEntity<String> checkIfUserLoggedIn(
+        @AuthenticationPrincipal OAuth2User user
+    ){
+        if(user == null){
+            System.out.println(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+            System.out.println(SecurityContextHolder.getContext().getAuthentication().getCredentials());
+            System.out.println(SecurityContextHolder.getContext().getAuthentication().getDetails());
+        }
         return SecurityContextHolder.getContext().getAuthentication() != null &&
-            SecurityContextHolder.getContext().getAuthentication().isAuthenticated() ?
+            SecurityContextHolder.getContext().getAuthentication().isAuthenticated() &&
+            !SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(anonymous) ?
             ResponseEntity.ok().build() : ResponseEntity.status(401).build();
     }
 

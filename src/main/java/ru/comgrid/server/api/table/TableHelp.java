@@ -25,7 +25,7 @@ public enum TableHelp{;
      * @param messagesRequest request info containing borders
      * @return true if borders are out of bounds, false if everything's ok
      */
-    public static boolean checkBorders(Chat chat, MessageUnionRequest messagesRequest){
+    public static boolean bordersWrong(Chat chat, MessageUnionRequest messagesRequest){
         if(messagesRequest.xcoordLeftTop == 0 &&
             messagesRequest.ycoordLeftTop == 0 &&
             messagesRequest.xcoordRightBottom == 0 &&
@@ -33,7 +33,7 @@ public enum TableHelp{;
         ){
             messagesRequest.xcoordRightBottom = chat.getWidth() - 1;
             messagesRequest.ycoordRightBottom = chat.getHeight() - 1;
-            return true;
+            return false;
         }
         return messagesRequest.xcoordLeftTop < 0 ||
             messagesRequest.xcoordLeftTop > messagesRequest.xcoordRightBottom ||
