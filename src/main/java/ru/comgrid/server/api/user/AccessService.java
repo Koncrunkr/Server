@@ -98,6 +98,10 @@ public class AccessService{
         }
 
         Long chatId = message.getChatId();
+        if(chatId == null){
+            sendException(personId, new RequestException(422, "chat.null"));
+            return false;
+        }
         Optional<Message> existingMessage = messageRepository.findMessageByChatIdAndXAndY(chatId, message.getX(), message.getY());
         if(existingMessage.isEmpty()){
             sendException(personId, new MessageNotFoundException());
@@ -125,6 +129,10 @@ public class AccessService{
             sendException(personId, new EditIsNotAllowedException());
             return false;
         }
+        if(newCellUnion.getChatId() == null){
+            sendException(personId, new RequestException(422, "chat.null"));
+            return false;
+        }
         if(hasAccessTo(personId, newCellUnion.getChatId(), Right.SendMessages, "message.send"))
             return doesNotIntersect(personId, newCellUnion, null, true);
         else
@@ -134,6 +142,10 @@ public class AccessService{
     public boolean hasAccessToEditCellUnion(BigDecimal personId, CellUnion cellUnion){
         if(cellUnion.getId() == null){
             sendException(personId, new SendIsNotAllowedException());
+            return false;
+        }
+        if(cellUnion.getChatId() == null){
+            sendException(personId, new RequestException(422, "chat.null"));
             return false;
         }
         Optional<TableParticipants> participance = participantsRepository.findById(new TableParticipant(

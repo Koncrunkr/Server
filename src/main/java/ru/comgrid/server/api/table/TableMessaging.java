@@ -6,7 +6,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import ru.comgrid.server.api.message.WebsocketDestination;
@@ -15,10 +14,8 @@ import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.exception.RequestException;
 import ru.comgrid.server.model.CellUnion;
 import ru.comgrid.server.model.Message;
-import ru.comgrid.server.model.Right;
 import ru.comgrid.server.repository.CellUnionRepository;
 import ru.comgrid.server.repository.MessageRepository;
-import ru.comgrid.server.security.destination.IndividualDestinationInterceptor;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -110,21 +107,6 @@ public class TableMessaging{
         messagingTemplate.convertAndSend(WebsocketDestination.TABLE_MESSAGE.destination(chatMessage.getChatId()), message);
     }
 
-
-    @Component
-    public static class TableMessageDestinationInterceptor implements IndividualDestinationInterceptor{
-        private final AccessService accessService;
-        public TableMessageDestinationInterceptor(@Autowired AccessService accessService){this.accessService = accessService;}
-        @Override
-        public String destination(){
-            return "table_message";
-        }
-        @Override
-        public boolean hasAccess(BigDecimal userId, String destinationId){
-            return accessService.hasAccessTo(userId, Long.parseLong(destinationId), Right.Read);
-        }
-    }
-
     @Transactional
     @MessageMapping("/table_cell_union")
     public void processNewCellsUnion(
@@ -157,22 +139,4 @@ public class TableMessaging{
         messagingTemplate.convertAndSend(WebsocketDestination.TABLE_UNION.destination(cellUnion.getChatId()), cellUnion);
     }
 
-    @Component
-    public static class CellUnionDestinationInterceptor implements IndividualDestinationInterceptor{
-        private final AccessService accessService;
-
-        public CellUnionDestinationInterceptor(
-            @Autowired AccessService accessService
-        ){
-            this.accessService = accessService;
-        }
-        @Override
-        public String destination(){
-            return "table_cell_union";
-        }
-        @Override
-        public boolean hasAccess(BigDecimal userId, String destinationId){
-            return accessService.hasAccessTo(userId, Long.parseLong(destinationId), Right.Read);
-        }
-    }
 }

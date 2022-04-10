@@ -17,7 +17,7 @@ public class CellUnion{
     @Column(nullable = false)
     private Long chatId;
 
-    @Column(nullable = false)
+    @Column(nullable = false, precision = 40)
     private BigDecimal creatorId;
 
     @Column(nullable = false)
