@@ -1,0 +1,1 @@
+alter table message alter column text set data type text;

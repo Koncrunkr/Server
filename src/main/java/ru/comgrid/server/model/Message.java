@@ -60,7 +60,7 @@ public class Message implements Serializable {
     private BigDecimal senderId;
 
     @Getter
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text not null")
     private String text;
 
     public Message(Integer x, Integer y, Long chatId, LocalDateTime time, BigDecimal senderId, String text){

@@ -68,16 +68,16 @@ public class FileController{
 
 	@GetMapping("/{fileLink}")
 	public ResponseEntity<byte[]> getFile(@PathVariable String fileLink){
-		fileLink = "/images/" + fileLink;
+		fileLink = fileRoute + fileLink;
 		if(!fileLink.startsWith(fileRoute))
 			throw new InvalidLinkException(fileLink, new Throwable(Path.of("/" + fileLink).toAbsolutePath() + "_fileRoute"));
 
 		try{
 			String filenameExtension = getFilenameExtension(fileLink);
 			if(filenameExtension == null)
-				throw new InvalidLinkException(fileLink, new Throwable(Path.of(fileLink).toAbsolutePath() + "_null"));
+				throw new InvalidLinkException(fileLink + ", no extension");
 			if(!allowedExtensions.contains(filenameExtension))
-				throw new InvalidLinkException(fileLink, new Throwable(Path.of(fileLink).toAbsolutePath() + "_allo"));
+				throw new InvalidLinkException(fileLink + ", bad extension");
 			//check whether it's legal uuid string
 			UUID.fromString(fileLink.substring(fileRoute.length(), fileLink.length() - filenameExtension.length() - 1));
 			System.out.println(Path.of("/" + fileLink).toAbsolutePath());

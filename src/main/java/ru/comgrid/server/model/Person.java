@@ -12,8 +12,10 @@ import ru.comgrid.server.service.Provider;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
-
+import java.util.List;
 
 /**
  * Person. It has:
@@ -63,9 +65,8 @@ public class Person implements Serializable, Persistable<BigDecimal>{
 //    private Date birthDate;
 
     @Column(updatable = false, nullable = false)
-    @Temporal(TemporalType.TIMESTAMP)
     @Getter
-    private final Date created = new Date();
+    private final LocalDateTime created = LocalDateTime.now();
 
     @JsonIgnore
     @Transient
@@ -81,7 +82,7 @@ public class Person implements Serializable, Persistable<BigDecimal>{
     @Transient
     @Setter
     @Getter
-    private Iterable<Chat> chats = null;
+    private List<Chat> chats = null;
 
 
     public Person(BigDecimal id, String name, String email, String avatar) {

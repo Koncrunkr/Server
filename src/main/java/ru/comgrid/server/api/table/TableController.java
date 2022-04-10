@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.comgrid.server.api.user.AccessService;
@@ -75,6 +76,7 @@ public class TableController{
 
 //    @Operation(requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = "multipart/form-data")))
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Transactional
     public ResponseEntity<Chat> createTable(
         @AuthenticationPrincipal OAuth2User user,
         @ModelAttribute @Valid NewChat newChat
@@ -150,6 +152,7 @@ public class TableController{
         content = @Content()
     )
     @PostMapping("/add_participant")
+    @Transactional
     public void addParticipant(
         @AuthenticationPrincipal OAuth2User user,
         @Valid @RequestBody AddParticipantRequest addParticipantRequest
@@ -178,6 +181,7 @@ public class TableController{
     }
 
     @PostMapping("/rights")
+    @Transactional
     public void changeRights(
         @AuthenticationPrincipal OAuth2User user,
         @Valid @RequestBody ChangeRightsRequest changeRightsRequest

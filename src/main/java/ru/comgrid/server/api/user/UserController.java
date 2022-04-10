@@ -59,7 +59,7 @@ public class UserController{
             List<Long> chatIds = chatParticipantsRepository.findAllChatsByPerson(
                 person.getId()
             );
-            Iterable<Chat> chats = chatRepository.findAllById(chatIds);
+            List<Chat> chats = chatRepository.findAllById(chatIds);
             person.setChats(chats);
         }
 
@@ -77,15 +77,7 @@ public class UserController{
     public ResponseEntity<String> checkIfUserLoggedIn(
         @AuthenticationPrincipal OAuth2User user
     ){
-        if(user == null){
-            System.out.println(SecurityContextHolder.getContext().getAuthentication().getPrincipal());
-            System.out.println(SecurityContextHolder.getContext().getAuthentication().getCredentials());
-            System.out.println(SecurityContextHolder.getContext().getAuthentication().getDetails());
-        }
-        return SecurityContextHolder.getContext().getAuthentication() != null &&
-            SecurityContextHolder.getContext().getAuthentication().isAuthenticated() &&
-            !SecurityContextHolder.getContext().getAuthentication().getAuthorities().contains(anonymous) ?
-            ResponseEntity.ok().build() : ResponseEntity.status(401).build();
+        return user != null ? ResponseEntity.ok().build() : ResponseEntity.status(401).build();
     }
 
 }

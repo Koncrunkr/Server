@@ -148,15 +148,15 @@ public class TableMessaging{
     @MessageMapping("/table_cell_union/edit")
     public void processEditCellsUnion(
         @AuthenticationPrincipal OAuth2User user,
-        @Payload CellUnion newCellUnion
+        @Payload CellUnion existingCellUnion
     ){
         BigDecimal personId = UserHelp.extractId(user);
-        if(!accessService.hasAccessToEditCellUnion(personId, newCellUnion)){
+        if(!accessService.hasAccessToEditCellUnion(personId, existingCellUnion)){
             return;
         }
-        newCellUnion.setCreatorId(personId);
+        existingCellUnion.setCreatorId(personId);
 
-        CellUnion cellUnion = cellUnionRepository.save(newCellUnion);
+        CellUnion cellUnion = cellUnionRepository.save(existingCellUnion);
         messagingTemplate.convertAndSend(tableDestination(cellUnion.getChatId()), cellUnion);
     }
 }
