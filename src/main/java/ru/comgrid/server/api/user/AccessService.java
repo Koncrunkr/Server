@@ -3,6 +3,7 @@ package ru.comgrid.server.api.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import ru.comgrid.server.api.message.WebsocketDestination;
 import ru.comgrid.server.api.table.TableHelp;
 import ru.comgrid.server.exception.*;
 import ru.comgrid.server.exception.IllegalAccessException;
@@ -18,7 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static ru.comgrid.server.api.message.MessageHelp.userDestination;
 import static ru.comgrid.server.api.user.UserHelp.samePerson;
 
 @Service
@@ -88,7 +88,7 @@ public class AccessService{
     }
 
     private void sendException(BigDecimal personId, RequestException requestException){
-        messagingTemplate.convertAndSend(userDestination(personId), requestException);
+        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_MESSAGE.destination(personId), requestException);
     }
 
     public boolean hasAccessToEditMessage(BigDecimal personId, Message message){

@@ -9,14 +9,14 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import ru.comgrid.server.api.message.WebsocketDestination;
 import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.exception.RequestException;
-import ru.comgrid.server.exception.SendIsNotAllowedException;
 import ru.comgrid.server.model.CellUnion;
 import ru.comgrid.server.model.Message;
+import ru.comgrid.server.model.Right;
 import ru.comgrid.server.repository.CellUnionRepository;
-import ru.comgrid.server.repository.ChatParticipantsRepository;
 import ru.comgrid.server.repository.MessageRepository;
 import ru.comgrid.server.security.destination.IndividualDestinationInterceptor;
 
@@ -24,9 +24,6 @@ import java.math.BigDecimal;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.Optional;
-
-import static ru.comgrid.server.api.message.MessageHelp.tableDestination;
-import static ru.comgrid.server.api.message.MessageHelp.userDestination;
 
 /**
  * Table messaging via SockJS(WebSocket)
@@ -75,7 +72,7 @@ public class TableMessaging{
     }
 
     private void sendException(BigDecimal personId, RequestException requestException){
-        messagingTemplate.convertAndSend(userDestination(personId), requestException);
+        messagingTemplate.convertAndSend(WebsocketDestination.USER.destination(personId), requestException);
     }
 
     @MessageMapping("/table_message")
@@ -92,7 +89,7 @@ public class TableMessaging{
         chatMessage.setTime(LocalDateTime.now(Clock.systemUTC()));
         Message message = messageRepository.save(chatMessage);
 
-        messagingTemplate.convertAndSend(tableDestination(chatMessage.getChatId()), message);
+        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_MESSAGE.destination(chatMessage.getChatId()), message);
     }
 
     @MessageMapping("/table_message/edit")
@@ -110,21 +107,21 @@ public class TableMessaging{
         chatMessage.setTime(LocalDateTime.now(Clock.systemUTC()));
         Message message = messageRepository.save(chatMessage);
 
-        messagingTemplate.convertAndSend(tableDestination(chatMessage.getChatId()), message);
+        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_MESSAGE.destination(chatMessage.getChatId()), message);
     }
 
 
     @Component
     public static class TableMessageDestinationInterceptor implements IndividualDestinationInterceptor{
-        private final ChatParticipantsRepository participantsRepository;
-        public TableMessageDestinationInterceptor(@Autowired ChatParticipantsRepository participantsRepository){this.participantsRepository = participantsRepository;}
+        private final AccessService accessService;
+        public TableMessageDestinationInterceptor(@Autowired AccessService accessService){this.accessService = accessService;}
         @Override
         public String destination(){
             return "table_message";
         }
         @Override
         public boolean hasAccess(BigDecimal userId, String destinationId){
-            return participantsRepository.existsByChatAndPerson(Long.valueOf(destinationId), userId);
+            return accessService.hasAccessTo(userId, Long.parseLong(destinationId), Right.Read);
         }
     }
 
@@ -141,7 +138,7 @@ public class TableMessaging{
         newCellUnion.setCreatorId(personId);
 
         CellUnion cellUnion = cellUnionRepository.save(newCellUnion);
-        messagingTemplate.convertAndSend(tableDestination(cellUnion.getChatId()), cellUnion);
+        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_UNION.destination(newCellUnion.getChatId()), cellUnion);
     }
 
     @Transactional
@@ -157,6 +154,25 @@ public class TableMessaging{
         existingCellUnion.setCreatorId(personId);
 
         CellUnion cellUnion = cellUnionRepository.save(existingCellUnion);
-        messagingTemplate.convertAndSend(tableDestination(cellUnion.getChatId()), cellUnion);
+        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_UNION.destination(cellUnion.getChatId()), cellUnion);
+    }
+
+    @Component
+    public static class CellUnionDestinationInterceptor implements IndividualDestinationInterceptor{
+        private final AccessService accessService;
+
+        public CellUnionDestinationInterceptor(
+            @Autowired AccessService accessService
+        ){
+            this.accessService = accessService;
+        }
+        @Override
+        public String destination(){
+            return "table_cell_union";
+        }
+        @Override
+        public boolean hasAccess(BigDecimal userId, String destinationId){
+            return accessService.hasAccessTo(userId, Long.parseLong(destinationId), Right.Read);
+        }
     }
 }
