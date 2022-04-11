@@ -15,6 +15,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -59,7 +60,8 @@ public class SecurityConfig
                 .and()
             .rememberMe()
                 .alwaysRemember(true)
-                .userDetailsService(CustomUserDetails::new)
+                .userDetailsService(tokenRepository::get)
+                .useSecureCookie(true)
                 .and();
     }
 
@@ -88,6 +90,6 @@ public class SecurityConfig
         return new LoginSuccessRequestHandler(personRepository);
     }
 
-    static final ConcurrentHashMap<String, Pair<String, Collection<? extends GrantedAuthority>>> tokenRepository =
+    static final ConcurrentHashMap<String, CustomUserDetails> tokenRepository =
         new ConcurrentHashMap<>();
 }

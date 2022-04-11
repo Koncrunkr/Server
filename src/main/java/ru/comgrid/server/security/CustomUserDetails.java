@@ -4,37 +4,40 @@ import org.springframework.data.util.Pair;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.oauth2.core.oidc.OidcIdToken;
+import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
+import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 import java.util.Collection;
 
-class CustomUserDetails implements UserDetails{
-    private final String username;
-    private final String token;
-    private final Collection<? extends GrantedAuthority> authorities;
+class CustomUserDetails extends DefaultOidcUser implements UserDetails{
+    private final String name;
 
-    public CustomUserDetails(String username){
-        this.username = username;
-        Pair<String, Collection<? extends GrantedAuthority>> tokenAuthorities =
-            SecurityConfig.tokenRepository.get(username);
-        if (tokenAuthorities == null)
-            throw new UsernameNotFoundException(username);
-        token = tokenAuthorities.getFirst();
-        authorities = tokenAuthorities.getSecond();
+    public CustomUserDetails(OidcUser user){
+        this(user.getAuthorities(), user.getIdToken(), user.getUserInfo(), user.getName());
     }
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities(){
-        return authorities;
+    public CustomUserDetails(
+        Collection<? extends GrantedAuthority> authorities, OidcIdToken idToken,
+        OidcUserInfo userInfo, String name
+    ){
+        super(authorities, idToken, userInfo);
+        this.name = name;
     }
 
     @Override
     public String getPassword(){
-        return token;
+        return this.getIdToken().getTokenValue();
     }
 
     @Override
     public String getUsername(){
-        return username;
+        return toString();
+    }
+
+    @Override
+    public String getName(){
+        return name;
     }
 
     @Override

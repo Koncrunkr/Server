@@ -23,10 +23,7 @@ class LoginSuccessRequestHandler extends OidcUserService{
     @Override
     public OidcUser loadUser(OidcUserRequest userRequest) throws OAuth2AuthenticationException{
         var user = super.loadUser(userRequest);
-        SecurityConfig.tokenRepository.put(
-            user.toString(),
-            Pair.of(userRequest.getAccessToken().getTokenValue(), user.getAuthorities())
-        );
+        SecurityConfig.tokenRepository.put(user.toString(), new CustomUserDetails(user));
 
         Map<String, Object> infoAboutUser = userRequest.getIdToken().getClaims();
 
