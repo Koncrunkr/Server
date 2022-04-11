@@ -19,7 +19,6 @@ public class WebSocketTraceController{
 
 	@GetMapping("/websockettrace")
 	public WebSocketTraceDescriptor traces(){
-		System.out.println("Access");
 		return new WebSocketTraceDescriptor(this.webSocketTraceRepository.findAll());
 	}
 

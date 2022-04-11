@@ -20,7 +20,6 @@ public class WebSocketTraceConfiguration{
 	@Bean
 	@Description("Channel interceptor for WebSocket tracing")
 	public WebsocketTraceChannelInterceptor websocketTraceChannelInterceptor(WebSocketTraceRepository webSocketTraceRepository){
-		System.out.println("sdfsdf1");
 		return new WebsocketTraceChannelInterceptor(webSocketTraceRepository);
 	}
 

@@ -80,7 +80,6 @@ public class FileController{
 				throw new InvalidLinkException(fileLink + ", bad extension");
 			//check whether it's legal uuid string
 			UUID.fromString(fileLink.substring(fileRoute.length(), fileLink.length() - filenameExtension.length() - 1));
-			System.out.println(Path.of("/" + fileLink).toAbsolutePath());
 			return ResponseEntity
 				.ok()
 				.contentType(new MediaType("image", filenameExtension))

@@ -88,7 +88,7 @@ public class AccessService{
     }
 
     private void sendException(BigDecimal personId, RequestException requestException){
-        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_MESSAGE.destination(personId), requestException);
+        messagingTemplate.convertAndSend(WebsocketDestination.USER.destination(personId), requestException);
     }
 
     public boolean hasAccessToEditMessage(BigDecimal personId, Message message){
@@ -134,7 +134,7 @@ public class AccessService{
             return false;
         }
         if(hasAccessTo(personId, newCellUnion.getChatId(), Right.SendMessages, "message.send"))
-            return doesNotIntersect(personId, newCellUnion, null, true);
+            return doesNotIntersect(personId, newCellUnion, null);
         else
             return false;
     }
@@ -173,7 +173,7 @@ public class AccessService{
             return false; // user does not have right to edit any cell unions
 
         if(samePerson(existingCellUnion.getCreatorId(), personId)){
-            if(doesNotIntersect(personId, newCellUnion, existingCellUnion.getId(), false)){
+            if(doesNotIntersect(personId, newCellUnion, existingCellUnion.getId())){
                 return true;
             }
             sendException(personId, new CellUnionAlreadyExistsException());
@@ -184,16 +184,17 @@ public class AccessService{
         return false;
     }
 
-    private boolean doesNotIntersect(BigDecimal personId, CellUnion cellUnion, Long existingCellUnionId, boolean sameSenderNotAllowed){
-        if(sameSenderNotAllowed){
-            return !cellUnionRepository.existsCellUnion(
-                cellUnion.getChatId(),
-                cellUnion.getXcoordLeftTop(),
-                cellUnion.getYcoordLeftTop(),
-                cellUnion.getXcoordRightBottom(),
-                cellUnion.getYcoordRightBottom()
-            );
-        }
+    private boolean doesNotIntersect(BigDecimal personId, CellUnion cellUnion, Long existingCellUnionId){
+//        if(sameSenderNotAllowed){
+//            sendException(personId, new IllegalAccessException("chat.override_cell_union"));
+//            return !cellUnionRepository.existsCellUnion(
+//                cellUnion.getChatId(),
+//                cellUnion.getXcoordLeftTop(),
+//                cellUnion.getYcoordLeftTop(),
+//                cellUnion.getXcoordRightBottom(),
+//                cellUnion.getYcoordRightBottom()
+//            );
+//        }
 
         List<CellUnion> cellUnionsIntersected = cellUnionRepository.findAllByChat(
             cellUnion.getChatId(),
@@ -207,6 +208,7 @@ public class AccessService{
 
         for(var intersected : cellUnionsIntersected){
             if(!samePerson(intersected.getCreatorId(), personId)){
+                sendException(personId, new IllegalAccessException("chat.override_other_cell_union"));
                 return false;
             }
             if(TableHelp.isInside(intersected, cellUnion) && !cellUnion.getId().equals(existingCellUnionId)){

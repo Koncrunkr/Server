@@ -20,14 +20,13 @@ import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.api.util.FileController;
 import ru.comgrid.server.exception.IllegalAccessException;
+import ru.comgrid.server.exception.InvalidLinkException;
 import ru.comgrid.server.exception.OutOfBoundsRequestException;
 import ru.comgrid.server.exception.RequestException;
-import ru.comgrid.server.model.Chat;
-import ru.comgrid.server.model.Person;
-import ru.comgrid.server.model.Right;
-import ru.comgrid.server.model.TableParticipants;
+import ru.comgrid.server.model.*;
 import ru.comgrid.server.repository.ChatParticipantsRepository;
 import ru.comgrid.server.repository.ChatRepository;
+import ru.comgrid.server.repository.InvitationRepository;
 import ru.comgrid.server.repository.PersonRepository;
 import ru.comgrid.server.util.EnumSet0;
 
@@ -54,6 +53,7 @@ public class TableController{
     private final ChatParticipantsRepository participantsRepository;
     private final PersonRepository personRepository;
     private final FileController fileController;
+    private final InvitationRepository invitationRepository;
 
     private final AccessService accessService;
 
@@ -61,16 +61,18 @@ public class TableController{
      * @hidden
      */
     public TableController(
-            @Autowired ChatRepository chatRepository,
-            @Autowired ChatParticipantsRepository participantsRepository,
-            @Autowired PersonRepository personRepository,
-            @Autowired FileController fileController,
-            @Autowired AccessService accessService
+        @Autowired ChatRepository chatRepository,
+        @Autowired ChatParticipantsRepository participantsRepository,
+        @Autowired PersonRepository personRepository,
+        @Autowired FileController fileController,
+        @Autowired InvitationRepository invitationRepository,
+        @Autowired AccessService accessService
     ){
         this.chatRepository = chatRepository;
         this.participantsRepository = participantsRepository;
         this.personRepository = personRepository;
         this.fileController = fileController;
+        this.invitationRepository = invitationRepository;
         this.accessService = accessService;
     }
 
@@ -169,7 +171,7 @@ public class TableController{
         }
 
         if(participantsRepository.existsByChatAndPerson(addParticipantRequest.chatId, newUserId)){
-            throw new RequestException(404, "user.already_participant");
+            throw new RequestException(422, "user.already_participant");
         }
 
         participantsRepository.save(new TableParticipants(
@@ -181,6 +183,7 @@ public class TableController{
     }
 
     @PostMapping("/rights")
+    @Operation(summary = "Change rights of user")
     @Transactional
     public void changeRights(
         @AuthenticationPrincipal OAuth2User user,
@@ -208,6 +211,71 @@ public class TableController{
         participantsRepository.save(participant);
     }
 
+    @Operation(summary = "Enter chat by invitation code")
+    @Transactional
+    @PostMapping("/invitation_link")
+    public InvitationSuccessResponse acceptInvitation(
+        @AuthenticationPrincipal OAuth2User user,
+        @RequestBody InvitationLinkRequest code
+    ){
+        var userId = UserHelp.extractId(user);
+        Invitation invitation = invitationRepository.findByInvitationCode(code.code);
+        if(invitation == null){
+            throw new InvalidLinkException();
+        }
+
+        if(participantsRepository.existsByChatAndPerson(invitation.getChatId(), userId)){
+            throw new RequestException(422, "user.already_participant");
+        }
+
+        participantsRepository.save(
+            new TableParticipants(
+                invitation.getChatId(),
+                userId,
+                EnumSet0.of(Right.Read, Right.SendMessages, Right.EditOwnMessages, Right.CreateCellUnions, Right.EditOwnCellUnions),
+                LocalDateTime.now()
+            )
+        );
+        return new InvitationSuccessResponse(invitation.getChatId());
+    }
+
+    @Operation(summary = "Get invitation code or create it. Only if you have right AddUser")
+    @Transactional
+    @GetMapping("/invitation_link")
+    public InvitationLinkRequest getInvitationLink(
+        @AuthenticationPrincipal OAuth2User user,
+        @RequestParam long chatId
+    ){
+        var userId = UserHelp.extractId(user);
+
+        if(!accessService.hasAccessTo(userId, chatId, Right.AddUsers)){
+            throw new IllegalAccessException("manage_users");
+        }
+
+        Invitation invitation = invitationRepository.findByChatId(chatId);
+        if(invitation == null){
+            invitation = invitationRepository.save(new Invitation(chatId));
+        }
+
+        return new InvitationLinkRequest(invitation.getInvitationCode());
+    }
+
+    @Operation(summary = "Revoke invitation code. Only if you have right AddUser")
+    @Transactional
+    @DeleteMapping("/invitation_link")
+    public void revokeInvitationLink(
+        @AuthenticationPrincipal OAuth2User user,
+        @RequestParam long chatId
+    ){
+        var userId = UserHelp.extractId(user);
+
+        if(!accessService.hasAccessTo(userId, chatId, Right.AddUsers)){
+            throw new IllegalAccessException("manage_users");
+        }
+
+        invitationRepository.deleteByChatId(chatId);
+    }
+
 
     @AllArgsConstructor
     @NoArgsConstructor
@@ -229,6 +297,22 @@ public class TableController{
         @NotEmpty String userId;
         @Schema(defaultValue = "3")
         @NotNull long rights;
+    }
+
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Getter
+    @Setter
+    public static class InvitationLinkRequest{
+        String code;
+    }
+
+    @AllArgsConstructor
+    @NoArgsConstructor
+    @Getter
+    @Setter
+    public static class InvitationSuccessResponse{
+        long chatId;
     }
 }
 

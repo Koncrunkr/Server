@@ -54,7 +54,6 @@ public class SecurityConfig
                 .logoutSuccessUrl("https://comgrid.ru/")
                 .permitAll()
                 .logoutSuccessHandler((request, response, authentication) -> {
-                    System.out.println(authentication.getPrincipal());
                     tokenRepository.remove(((CustomUserDetails) authentication.getPrincipal()).getUsername());
                 })
                 .and()

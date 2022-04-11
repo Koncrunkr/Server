@@ -22,7 +22,6 @@ public class UserSubscriptionInterceptor implements ChannelInterceptor{
     private final Map<String, IndividualDestinationInterceptor> individualDestinationInterceptors;
 
     public UserSubscriptionInterceptor(List<IndividualDestinationInterceptor> individualDestinationInterceptors){
-        System.out.println(individualDestinationInterceptors);
         this.individualDestinationInterceptors =
             individualDestinationInterceptors
                 .stream()
