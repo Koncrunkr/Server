@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import ru.comgrid.server.api.table.TableHelp;
@@ -21,6 +22,7 @@ import ru.comgrid.server.model.Right;
 import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.MessageRepository;
 import ru.comgrid.server.repository.CellUnionRepository;
+import ru.comgrid.server.security.CustomUserDetails;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -53,7 +55,7 @@ public class MessageController{
     @ApiResponse(responseCode = "422", description = "time.negative-or-future, means you've entered negative time or time that has not yet happened")
     @PostMapping("/list")
     public ResponseEntity<List<Message>> getMessages(
-        @AuthenticationPrincipal OAuth2User user,
+        @AuthenticationPrincipal UserDetails user,
         @RequestBody MessagesRequest messagesRequest
     ){
         var userId = UserHelp.extractId(user);
@@ -99,7 +101,7 @@ public class MessageController{
         """)
     @GetMapping("/unions")
     public ResponseEntity<List<CellUnion>> cellUnions(
-        @AuthenticationPrincipal OAuth2User user,
+        @AuthenticationPrincipal UserDetails user,
         @RequestParam long chatId,
         @RequestParam(required = false, defaultValue = "0") int xcoordLeftTop,
         @RequestParam(required = false, defaultValue = "0") int ycoordLeftTop,
@@ -131,7 +133,7 @@ public class MessageController{
 
 
     public ResponseEntity<List<Message>> getLastMessages(@NotNull MessagesRequest messagesRequest){
-        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenOrderByTimeDesc(
+        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenOrderByEditedDesc(
             messagesRequest.chatId, messagesRequest.xcoordLeftTop, messagesRequest.xcoordRightBottom,
             messagesRequest.ycoordLeftTop, messagesRequest.ycoordRightBottom
         );
@@ -141,7 +143,7 @@ public class MessageController{
     public ResponseEntity<List<Message>> getMessagesUntil(@NotNull MessagesRequest messagesRequest){
         LocalDateTime until = TableHelp.toDateTime(messagesRequest.untilDateTimeMillis);
 
-        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeBeforeOrderByTimeDesc(
+        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndEditedBeforeOrderByEditedDesc(
             messagesRequest.chatId,
             messagesRequest.xcoordLeftTop,
             messagesRequest.xcoordRightBottom,
@@ -155,7 +157,7 @@ public class MessageController{
     public ResponseEntity<List<Message>> getMessagesSince(@NotNull MessagesRequest messagesRequest){
         LocalDateTime since = TableHelp.toDateTime(messagesRequest.sinceDateTimeMillis);
 
-        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeAfterOrderByTimeDesc(
+        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndEditedAfterOrderByEditedDesc(
             messagesRequest.chatId,
             messagesRequest.xcoordLeftTop,
             messagesRequest.xcoordRightBottom,
@@ -170,7 +172,7 @@ public class MessageController{
         LocalDateTime since = TableHelp.toDateTime(messagesRequest.sinceDateTimeMillis);
         LocalDateTime until = TableHelp.toDateTime(messagesRequest.untilDateTimeMillis);
 
-        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndTimeBetweenOrderByTimeDesc(
+        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndEditedBetweenOrderByEditedDesc(
             messagesRequest.chatId,
             messagesRequest.xcoordLeftTop,
             messagesRequest.xcoordRightBottom,

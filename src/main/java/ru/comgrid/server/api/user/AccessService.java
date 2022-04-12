@@ -3,6 +3,7 @@ package ru.comgrid.server.api.user;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import ru.comgrid.server.api.message.WebsocketDestination;
 import ru.comgrid.server.api.table.TableHelp;
 import ru.comgrid.server.exception.*;
@@ -44,10 +45,6 @@ public class AccessService{
         this.chatRepository = chatRepository;
     }
 
-    public boolean hasAccessTo(Person person, long chatId, Right right){
-        return hasAccessTo(person.getId(), chatId, right);
-    }
-
     public boolean hasAccessTo(BigDecimal userId, long chatId, Right right){
         Optional<TableParticipants> participance = participantsRepository.findById(new TableParticipant(
             chatId,
@@ -68,9 +65,12 @@ public class AccessService{
             sendException(personId, new IllegalAccessException("chat.send_message"));
             return false;
         }
+
+        if(checkForNullability(personId, message)) return false;
+
         Chat chat = chatRepository.findById(message.getChatId()).get();
         if(!checkBorders(chat, message)){
-            sendException(personId, new OutOfBoundsRequestException("message." + message.getChatId() + "." + message.getX() + "." + message.getY()));
+            sendException(personId, new OutOfBoundsRequestException("message.out_of_bounds" + message.getChatId() + "." + message.getX() + "." + message.getY()));
             return false;
         }
         Optional<Message> existingMessage = messageRepository.findMessageByChatIdAndXAndY(message.getChatId(), message.getX(), message.getY());
@@ -80,6 +80,24 @@ public class AccessService{
         }
 
         return true;
+    }
+
+    private boolean checkForNullability(BigDecimal personId, Message message){
+        if(message.getChatId() == null){
+            sendException(personId, new RequestException(400, "chat.null"));
+            return true;
+        }
+
+        if(message.getX() == null || message.getY() == null){
+            sendException(personId, new RequestException(400, "coordinates.null"));
+            return true;
+        }
+
+        if(!StringUtils.hasText(message.getText())){
+            sendException(personId, new RequestException(400, "text.null"));
+            return true;
+        }
+        return false;
     }
 
     private boolean checkBorders(Chat chat, Message message){
@@ -97,11 +115,9 @@ public class AccessService{
             return false;
         }
 
+        if(checkForNullability(personId, message)) return false;
+
         Long chatId = message.getChatId();
-        if(chatId == null){
-            sendException(personId, new RequestException(422, "chat.null"));
-            return false;
-        }
         Optional<Message> existingMessage = messageRepository.findMessageByChatIdAndXAndY(chatId, message.getX(), message.getY());
         if(existingMessage.isEmpty()){
             sendException(personId, new MessageNotFoundException());
@@ -129,14 +145,29 @@ public class AccessService{
             sendException(personId, new EditIsNotAllowedException());
             return false;
         }
+
+        if(checkForNullability(personId, newCellUnion)) return false;
+
+        return hasAccessTo(personId, newCellUnion.getChatId(), Right.SendMessages, "message.send") &&
+            doesNotIntersect(personId, newCellUnion, null);
+    }
+
+    private boolean checkForNullability(BigDecimal personId, CellUnion newCellUnion){
         if(newCellUnion.getChatId() == null){
             sendException(personId, new RequestException(422, "chat.null"));
-            return false;
+            return true;
         }
-        if(hasAccessTo(personId, newCellUnion.getChatId(), Right.SendMessages, "message.send"))
-            return doesNotIntersect(personId, newCellUnion, null);
-        else
-            return false;
+
+        if(
+            newCellUnion.getXcoordRightBottom() == null ||
+            newCellUnion.getXcoordLeftTop() == null ||
+            newCellUnion.getYcoordLeftTop() == null ||
+            newCellUnion.getYcoordRightBottom() == null
+        ){
+            sendException(personId, new RequestException(400, "coordinates.null"));
+            return true;
+        }
+        return false;
     }
 
     public boolean hasAccessToEditCellUnion(BigDecimal personId, CellUnion cellUnion){
@@ -144,10 +175,8 @@ public class AccessService{
             sendException(personId, new SendIsNotAllowedException());
             return false;
         }
-        if(cellUnion.getChatId() == null){
-            sendException(personId, new RequestException(422, "chat.null"));
-            return false;
-        }
+        if(checkForNullability(personId, cellUnion)) return false;
+
         Optional<TableParticipants> participance = participantsRepository.findById(new TableParticipant(
             cellUnion.getChatId(),
             personId
@@ -185,17 +214,6 @@ public class AccessService{
     }
 
     private boolean doesNotIntersect(BigDecimal personId, CellUnion cellUnion, Long existingCellUnionId){
-//        if(sameSenderNotAllowed){
-//            sendException(personId, new IllegalAccessException("chat.override_cell_union"));
-//            return !cellUnionRepository.existsCellUnion(
-//                cellUnion.getChatId(),
-//                cellUnion.getXcoordLeftTop(),
-//                cellUnion.getYcoordLeftTop(),
-//                cellUnion.getXcoordRightBottom(),
-//                cellUnion.getYcoordRightBottom()
-//            );
-//        }
-
         List<CellUnion> cellUnionsIntersected = cellUnionRepository.findAllByChat(
             cellUnion.getChatId(),
             cellUnion.getXcoordLeftTop(),

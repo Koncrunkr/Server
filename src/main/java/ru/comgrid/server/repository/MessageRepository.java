@@ -11,7 +11,7 @@ import java.util.Optional;
 public interface MessageRepository extends JpaRepository<Message, Long>{
     Optional<Message> findMessageByChatIdAndXAndY(@Param("chatId") Long chatId, @Param("x") Integer x, @Param("y") Integer y);
 
-    List<Message> findAllByChatIdAndXBetweenAndYBetweenOrderByTimeDesc(
+    List<Message> findAllByChatIdAndXBetweenAndYBetweenOrderByEditedDesc(
         @Param("chatId") Long chatId,
         @Param("startX") Integer startX,
         @Param("endX") Integer endX,
@@ -19,7 +19,7 @@ public interface MessageRepository extends JpaRepository<Message, Long>{
         @Param("endY") Integer endY
     );
 
-    List<Message> findAllByChatIdAndXBetweenAndYBetweenAndTimeBeforeOrderByTimeDesc(
+    List<Message> findAllByChatIdAndXBetweenAndYBetweenAndEditedBeforeOrderByEditedDesc(
         Long chatId,
         Integer startX,
         Integer endX,
@@ -28,7 +28,7 @@ public interface MessageRepository extends JpaRepository<Message, Long>{
         LocalDateTime endTime
     );
 
-    List<Message> findAllByChatIdAndXBetweenAndYBetweenAndTimeBetweenOrderByTimeDesc(
+    List<Message> findAllByChatIdAndXBetweenAndYBetweenAndEditedBetweenOrderByEditedDesc(
         Long chatId,
         Integer startX,
         Integer endX,
@@ -38,7 +38,7 @@ public interface MessageRepository extends JpaRepository<Message, Long>{
         LocalDateTime endTime
     );
 
-    List<Message> findAllByChatIdAndXBetweenAndYBetweenAndTimeAfterOrderByTimeDesc(
+    List<Message> findAllByChatIdAndXBetweenAndYBetweenAndEditedAfterOrderByEditedDesc(
         Long chatId,
         Integer startX,
         Integer endX,

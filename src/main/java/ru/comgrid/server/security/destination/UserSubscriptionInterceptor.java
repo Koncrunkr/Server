@@ -6,7 +6,12 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.authentication.RememberMeAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.exception.IllegalAccessException;
@@ -56,8 +61,9 @@ public class UserSubscriptionInterceptor implements ChannelInterceptor{
         String destinationId = fullDestination[DESTINATION_ID_INDEX];
         String destination = fullDestination[DESTINATION_INDEX];
 
-        OAuth2AuthenticationToken user = ((OAuth2AuthenticationToken) headerAccessor.getUser());
-        BigDecimal userId = UserHelp.extractId(user.getPrincipal());
+        Authentication user = (Authentication) headerAccessor.getUser();
+        assert user != null;
+        BigDecimal userId = UserHelp.extractId((UserDetails) user.getPrincipal());
 
         if(!individualDestinationInterceptors.get(destination).hasAccess(userId, destinationId)){
             throw new IllegalAccessException("destination." + destination);
@@ -68,12 +74,10 @@ public class UserSubscriptionInterceptor implements ChannelInterceptor{
         List<String> destinations = headerAccessor.getNativeHeader("destination");
         assert destinations != null;
         if(destinations.size() != 1)
-            throw new IllegalArgumentException("Multiple destinations is not supported");
+            throw new IllegalArgumentException("Multiple destinations are not supported");
         String[] fullDestination = destinations.get(0).split("/");
         if(fullDestination.length != 4)
             throw new IllegalArgumentException("Destination is not correct: " + destinations.get(0));
         return fullDestination;
     }
-
-
 }

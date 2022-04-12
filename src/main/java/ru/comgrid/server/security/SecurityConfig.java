@@ -7,21 +7,20 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
-import org.springframework.data.util.Pair;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import ru.comgrid.server.repository.PersonRepository;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -31,9 +30,14 @@ public class SecurityConfig
         extends WebSecurityConfigurerAdapter {
 
     private final PersonRepository personRepository;
+    private final JdbcTokenRepositoryImpl jdbcTokenRepository = new JdbcTokenRepositoryImpl();
 
-    public SecurityConfig(@Autowired PersonRepository personRepository){
+    public SecurityConfig(
+        @Autowired PersonRepository personRepository,
+        @Autowired JdbcTemplate jdbcTemplate
+    ){
         this.personRepository = personRepository;
+        jdbcTokenRepository.setJdbcTemplate(jdbcTemplate);
     }
 
     @Override
@@ -54,13 +58,14 @@ public class SecurityConfig
             .logout()
                 .logoutSuccessUrl("https://comgrid.ru/")
                 .permitAll()
-                .logoutSuccessHandler((request, response, authentication) -> {
-                    tokenRepository.remove(((CustomUserDetails) authentication.getPrincipal()).getUsername());
-                })
+//                .logoutSuccessHandler((request, response, authentication) -> {
+//                    jdbcTokenRepository.remove(((CustomUserDetails) authentication.getPrincipal()).getUsername());
+//                })
                 .and()
             .rememberMe()
                 .alwaysRemember(true)
-                .userDetailsService(tokenRepository::get)
+                .userDetailsService(CustomUserDetails::new)
+                .tokenRepository(jdbcTokenRepository)
                 .useSecureCookie(true)
                 .and();
     }
@@ -90,6 +95,21 @@ public class SecurityConfig
         return new LoginSuccessRequestHandler(personRepository);
     }
 
-    static final ConcurrentHashMap<String, CustomUserDetails> tokenRepository =
-        new ConcurrentHashMap<>();
+//    @Bean
+//    public static ClientRegistration getVk() {
+//        ClientRegistration.Builder builder = ClientRegistration.withRegistrationId("vk");
+////            .getBuilder("vk", ClientAuthenticationMethod.POST, "{baseUrl}/{action}/oauth2/code/{registrationId}");
+//        builder.scope("3");
+//        builder.clientAuthenticationMethod(ClientAuthenticationMethod.POST);
+//        builder.authorizationUri("https://oauth.vk.com/authorize?v=5.95");
+//        builder.tokenUri("https://oauth.vk.com/access_token");
+//        builder.userInfoUri("https://api.vk.com/method/users.get?{user_id}&v=5.95&fields=photo_id,verified,sex,bdate,city,country,photo_max,home_town,has_photo&display=popup&lang=ru&access_token=xxxxx");
+//        builder.clientName("vkontakte");
+//        builder.redirectUri("{baseUrl}/oauth2/callback/{registrationId}");
+//        builder.clientId("8135349");
+//        builder.clientSecret("Lss2aX961WluwqP3qjWJ");
+//        builder.userNameAttributeName("user_id");
+//        builder.registrationId("vk");
+//        return builder.build();
+//    }
 }

@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -28,6 +29,7 @@ import ru.comgrid.server.repository.ChatParticipantsRepository;
 import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.InvitationRepository;
 import ru.comgrid.server.repository.PersonRepository;
+import ru.comgrid.server.security.CustomUserDetails;
 import ru.comgrid.server.util.EnumSet0;
 
 import javax.validation.Valid;
@@ -80,7 +82,7 @@ public class TableController{
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<Chat> createTable(
-        @AuthenticationPrincipal OAuth2User user,
+        @AuthenticationPrincipal UserDetails user,
         @ModelAttribute @Valid NewChat newChat
     ){
         FileController.ImageEntity imageEntity = fileController.uploadImage(newChat.avatarFile, newChat.avatarLink);
@@ -96,7 +98,7 @@ public class TableController{
     private void checkBorders(int width, int height){
         if(width <= 0 || height <= 0)
             throw new OutOfBoundsRequestException("negative_size");
-        if(width * height > 2500)
+        if(width * height > 1_000_000)
             throw new OutOfBoundsRequestException("too_large");
     }
 
@@ -116,7 +118,7 @@ public class TableController{
     @ApiResponse(description = "Chat not found", responseCode = "404")
     @GetMapping("/info")
     public ResponseEntity<Chat> infoAboutTable(
-        @AuthenticationPrincipal OAuth2User user,
+        @AuthenticationPrincipal UserDetails user,
         @RequestParam long chatId,
         @RequestParam(required = false, defaultValue = "false") boolean includeParticipants
     ){
@@ -156,7 +158,7 @@ public class TableController{
     @PostMapping("/add_participant")
     @Transactional
     public void addParticipant(
-        @AuthenticationPrincipal OAuth2User user,
+        @AuthenticationPrincipal UserDetails user,
         @Valid @RequestBody AddParticipantRequest addParticipantRequest
     ){
         var adminUserId = UserHelp.extractId(user);
@@ -186,7 +188,7 @@ public class TableController{
     @Operation(summary = "Change rights of user")
     @Transactional
     public void changeRights(
-        @AuthenticationPrincipal OAuth2User user,
+        @AuthenticationPrincipal UserDetails user,
         @Valid @RequestBody ChangeRightsRequest changeRightsRequest
     ){
         var adminUserId = UserHelp.extractId(user);
@@ -215,7 +217,7 @@ public class TableController{
     @Transactional
     @PostMapping("/invitation_link")
     public InvitationSuccessResponse acceptInvitation(
-        @AuthenticationPrincipal OAuth2User user,
+        @AuthenticationPrincipal UserDetails user,
         @RequestBody InvitationLinkRequest code
     ){
         var userId = UserHelp.extractId(user);
@@ -243,7 +245,7 @@ public class TableController{
     @Transactional
     @GetMapping("/invitation_link")
     public InvitationLinkRequest getInvitationLink(
-        @AuthenticationPrincipal OAuth2User user,
+        @AuthenticationPrincipal UserDetails user,
         @RequestParam long chatId
     ){
         var userId = UserHelp.extractId(user);
@@ -264,7 +266,7 @@ public class TableController{
     @Transactional
     @DeleteMapping("/invitation_link")
     public void revokeInvitationLink(
-        @AuthenticationPrincipal OAuth2User user,
+        @AuthenticationPrincipal UserDetails user,
         @RequestParam long chatId
     ){
         var userId = UserHelp.extractId(user);

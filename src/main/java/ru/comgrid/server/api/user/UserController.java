@@ -10,6 +10,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.web.bind.annotation.*;
 import ru.comgrid.server.model.Person;
@@ -18,6 +19,7 @@ import ru.comgrid.server.model.Right;
 import ru.comgrid.server.repository.ChatParticipantsRepository;
 import ru.comgrid.server.repository.PersonRepository;
 import ru.comgrid.server.repository.ChatRepository;
+import ru.comgrid.server.security.CustomUserDetails;
 
 import java.util.Arrays;
 import java.util.List;
@@ -48,7 +50,7 @@ public class UserController{
     @Operation(summary = "Get user info")
     @GetMapping("/info")
     public ResponseEntity<Person> getUserInfo(
-        @AuthenticationPrincipal OAuth2User user,
+        @AuthenticationPrincipal UserDetails user,
         @RequestParam(required = false, defaultValue = "false") boolean includeChats
     ){
         var id = UserHelp.extractId(user);
@@ -75,7 +77,7 @@ public class UserController{
     })
     @GetMapping("/login")
     public ResponseEntity<String> checkIfUserLoggedIn(
-        @AuthenticationPrincipal OAuth2User user
+        @AuthenticationPrincipal UserDetails user
     ){
         return user != null ? ResponseEntity.ok().build() : ResponseEntity.status(401).build();
     }
