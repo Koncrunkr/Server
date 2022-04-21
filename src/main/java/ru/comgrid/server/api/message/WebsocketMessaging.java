@@ -1,21 +1,23 @@
-package ru.comgrid.server.api.table;
+package ru.comgrid.server.api.message;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
-import ru.comgrid.server.api.message.WebsocketDestination;
 import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.exception.RequestException;
 import ru.comgrid.server.model.CellUnion;
 import ru.comgrid.server.model.Message;
+import ru.comgrid.server.model.MessageId;
 import ru.comgrid.server.repository.CellUnionRepository;
 import ru.comgrid.server.repository.MessageRepository;
+import ru.comgrid.server.security.CustomUserDetails;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -27,7 +29,7 @@ import java.util.Optional;
  * @author MediaNik
  */
 @Controller
-public class TableMessaging{
+public class WebsocketMessaging{
     private final CellUnionRepository cellUnionRepository;
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
@@ -36,7 +38,7 @@ public class TableMessaging{
     /**
      * @hidden
      */
-    public TableMessaging(
+    public WebsocketMessaging(
         @Autowired CellUnionRepository cellUnionRepository,
         @Autowired MessageRepository messageRepository,
         @Autowired SimpMessagingTemplate messagingTemplate,
@@ -48,33 +50,34 @@ public class TableMessaging{
         this.accessService = accessService;
     }
 
-    @MessageMapping("/table_message/edit_or_send")
-    public void processNewOrEditMessage(
-        @AuthenticationPrincipal OAuth2User user,
-        @Payload Message chatMessage
-    ){
-        BigDecimal personId = UserHelp.extractId(user);
-        if(chatMessage.getId() != null){
-            processEditMessage(user, chatMessage);
-            return;
-        }
-
-        Optional<Message> message = messageRepository.findMessageByChatIdAndXAndY(chatMessage.getChatId(), chatMessage.getX(), chatMessage.getY());
-        if(message.isPresent()){
-            chatMessage.setId(message.get().getId());
-            processEditMessage(user, chatMessage);
-        }else{
-            processNewMessage(user, chatMessage);
-        }
-    }
+//    @Transactional
+//    @MessageMapping("/table_message/edit_or_send")
+//    public void processNewOrEditMessage(
+//        @AuthenticationPrincipal UserDetails user,
+//        @Payload Message chatMessage
+//    ){
+//        if(chatMessage.getId() != null){
+//            processEditMessage(user, chatMessage);
+//            return;
+//        }
+//
+//        Optional<Message> message = messageRepository.findMessageByChatIdAndXAndY(chatMessage.getChatId(), chatMessage.getX(), chatMessage.getY());
+//        if(message.isPresent()){
+//            chatMessage.setId(message.get().getId());
+//            processEditMessage(user, chatMessage);
+//        }else{
+//            processNewMessage(user, chatMessage);
+//        }
+//    }
 
     private void sendException(BigDecimal personId, RequestException requestException){
         messagingTemplate.convertAndSend(WebsocketDestination.USER.destination(personId), requestException);
     }
 
-    @MessageMapping("/table_message")
+    @Transactional
+    @MessageMapping("/table_message/edit_or_send")
     public void processNewMessage(
-        @AuthenticationPrincipal OAuth2User user,
+        @AuthenticationPrincipal UserDetails user,
         @Payload Message chatMessage
     ){
         BigDecimal personId = UserHelp.extractId(user);
@@ -83,34 +86,46 @@ public class TableMessaging{
             return;
         }
 
-        chatMessage.setTime(LocalDateTime.now(Clock.systemUTC()));
-        Message message = messageRepository.save(chatMessage);
-
-        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_MESSAGE.destination(chatMessage.getChatId()), message);
-    }
-
-    @MessageMapping("/table_message/edit")
-    public void processEditMessage(
-        @AuthenticationPrincipal OAuth2User user,
-        @Payload Message chatMessage
-    ){
-        BigDecimal personId = UserHelp.extractId(user);
-
-        if(!accessService.hasAccessToEditMessage(personId, chatMessage)){
-            return;
+        Optional<Message> oldMessage = messageRepository.findById(new MessageId(chatMessage.getChatId(), chatMessage.getX(), chatMessage.getY()));
+        Message message;
+        if(oldMessage.isEmpty()){
+            chatMessage.setCreated(LocalDateTime.now(Clock.systemUTC()));
+            chatMessage.setEdited(LocalDateTime.now(Clock.systemUTC()));
+            message = messageRepository.save(chatMessage);
+        }else{
+            oldMessage.get().setText(chatMessage.getText());
+            oldMessage.get().setEdited(LocalDateTime.now());
+            message = messageRepository.save(oldMessage.get());
         }
 
-        chatMessage.setSenderId(personId);
-        chatMessage.setTime(LocalDateTime.now(Clock.systemUTC()));
-        Message message = messageRepository.save(chatMessage);
-
         messagingTemplate.convertAndSend(WebsocketDestination.TABLE_MESSAGE.destination(chatMessage.getChatId()), message);
     }
+
+//    @Transactional
+//    @MessageMapping("/table_message/edit")
+//    public void processEditMessage(
+//        @AuthenticationPrincipal UserDetails user,
+//        @Payload Message chatMessage
+//    ){
+//        BigDecimal personId = UserHelp.extractId(user);
+//        chatMessage.setSenderId(personId);
+//
+//        if(!accessService.hasAccessToEditMessage(personId, chatMessage)){
+//            return;
+//        }
+//
+//        Message oldMessage = messageRepository.getById(chatMessage.getId());
+//        oldMessage.setEdited(LocalDateTime.now(Clock.systemUTC()));
+//        oldMessage.setText(chatMessage.getText());
+//        Message message = messageRepository.save(oldMessage);
+//
+//        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_MESSAGE.destination(chatMessage.getChatId()), message);
+//    }
 
     @Transactional
     @MessageMapping("/table_cell_union")
     public void processNewCellsUnion(
-        @AuthenticationPrincipal OAuth2User user,
+        @AuthenticationPrincipal UserDetails user,
         @Payload CellUnion newCellUnion
     ){
         BigDecimal personId = UserHelp.extractId(user);
@@ -126,7 +141,7 @@ public class TableMessaging{
     @Transactional
     @MessageMapping("/table_cell_union/edit")
     public void processEditCellsUnion(
-        @AuthenticationPrincipal OAuth2User user,
+        @AuthenticationPrincipal UserDetails user,
         @Payload CellUnion existingCellUnion
     ){
         BigDecimal personId = UserHelp.extractId(user);

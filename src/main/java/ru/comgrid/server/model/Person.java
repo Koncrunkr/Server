@@ -42,7 +42,7 @@ public class Person implements Serializable, Persistable<BigDecimal>{
     @Setter
     private String name;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     @Getter
     @Setter
     private String email;
@@ -75,9 +75,10 @@ public class Person implements Serializable, Persistable<BigDecimal>{
     private boolean isNew;
 
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     @Setter
     @Getter
-    private Provider provider = Provider.GOOGLE;
+    private Provider provider;
 
     @Transient
     @Setter

@@ -1,10 +1,12 @@
 package ru.comgrid.server.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.domain.Persistable;
 import ru.comgrid.server.api.user.UserHelp;
 
 import javax.persistence.*;
@@ -28,19 +30,19 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
+@IdClass(MessageId.class)
 @NoArgsConstructor
-public class Message implements Serializable {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(nullable = false)
-    private Long id;
+public class Message implements Serializable, Persistable<MessageId>{
 
+    @Id
     @Column(nullable = false)
     private Integer x;
 
+    @Id
     @Column(nullable = false)
     private Integer y;
 
+    @Id
     @Column(nullable = false)
     private Long chatId;
 
@@ -56,6 +58,14 @@ public class Message implements Serializable {
 
     @Column(nullable = false, columnDefinition = "text not null")
     private String text;
+
+    @Transient
+    @JsonIgnore
+    private boolean isNew;
+
+    public MessageId getId(){
+        return new MessageId(chatId, x, y);
+    }
 
     public Message(Integer x, Integer y, Long chatId, LocalDateTime created, BigDecimal senderId, String text){
         this.x = x;

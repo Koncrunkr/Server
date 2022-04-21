@@ -17,6 +17,7 @@ import ru.comgrid.server.util.EnumSet0;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,7 +46,7 @@ public class AccessService{
         this.chatRepository = chatRepository;
     }
 
-    public boolean hasAccessTo(BigDecimal userId, long chatId, Right right){
+    public boolean hasAccessTo(BigDecimal userId, long chatId, Right... rights){
         Optional<TableParticipants> participance = participantsRepository.findById(new TableParticipant(
             chatId,
             userId
@@ -53,14 +54,14 @@ public class AccessService{
         if(participance.isEmpty())
             return false;
 
-        return participance.get().rights().contains(right);
+        return participance.get().rights().containsAll(Arrays.asList(rights));
     }
 
     public boolean hasAccessToSendMessage(BigDecimal personId, Message message){
-        if(message.getId() != null){
-            sendException(personId, new EditIsNotAllowedException());
-            return false;
-        }
+//        if(message.getId() != null){
+//            sendException(personId, new EditIsNotAllowedException());
+//            return false;
+//        }
         if(!hasAccessTo(personId, message.getChatId(), Right.SendMessages)){
             sendException(personId, new IllegalAccessException("chat.send_message"));
             return false;
@@ -75,8 +76,16 @@ public class AccessService{
         }
         Optional<Message> existingMessage = messageRepository.findMessageByChatIdAndXAndY(message.getChatId(), message.getX(), message.getY());
         if(existingMessage.isPresent()){
-            sendException(personId, new MessageAlreadyExistsException());
-            return false;
+            if(
+                existingMessage.get().isSender(personId) &&
+                !hasAccessTo(personId, message.getChatId(), Right.EditOwnMessages)
+            ||
+                !existingMessage.get().isSender(personId) &&
+                !hasAccessTo(personId, message.getChatId(), Right.EditOthersMessages)
+            ){
+                sendException(personId, new MessageAlreadyExistsException());
+                return false;
+            }
         }
 
         return true;
@@ -110,10 +119,10 @@ public class AccessService{
     }
 
     public boolean hasAccessToEditMessage(BigDecimal personId, Message message){
-        if(message.getId() == null){
-            sendException(personId, new SendIsNotAllowedException());
-            return false;
-        }
+//        if(message.getId() == null){
+//            sendException(personId, new SendIsNotAllowedException());
+//            return false;
+//        }
 
         if(checkForNullability(personId, message)) return false;
 

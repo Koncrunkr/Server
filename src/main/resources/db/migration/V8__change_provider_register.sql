@@ -1,0 +1,1 @@
+update person set provider=lower(provider);

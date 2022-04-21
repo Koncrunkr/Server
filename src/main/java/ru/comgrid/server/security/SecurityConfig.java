@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.rememberme.JdbcTokenRepositoryImpl;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -94,22 +95,4 @@ public class SecurityConfig
     public OAuth2UserService<OidcUserRequest, OidcUser> loginService(){
         return new LoginSuccessRequestHandler(personRepository);
     }
-
-//    @Bean
-//    public static ClientRegistration getVk() {
-//        ClientRegistration.Builder builder = ClientRegistration.withRegistrationId("vk");
-////            .getBuilder("vk", ClientAuthenticationMethod.POST, "{baseUrl}/{action}/oauth2/code/{registrationId}");
-//        builder.scope("3");
-//        builder.clientAuthenticationMethod(ClientAuthenticationMethod.POST);
-//        builder.authorizationUri("https://oauth.vk.com/authorize?v=5.95");
-//        builder.tokenUri("https://oauth.vk.com/access_token");
-//        builder.userInfoUri("https://api.vk.com/method/users.get?{user_id}&v=5.95&fields=photo_id,verified,sex,bdate,city,country,photo_max,home_town,has_photo&display=popup&lang=ru&access_token=xxxxx");
-//        builder.clientName("vkontakte");
-//        builder.redirectUri("{baseUrl}/oauth2/callback/{registrationId}");
-//        builder.clientId("8135349");
-//        builder.clientSecret("Lss2aX961WluwqP3qjWJ");
-//        builder.userNameAttributeName("user_id");
-//        builder.registrationId("vk");
-//        return builder.build();
-//    }
 }

@@ -3,12 +3,13 @@ package ru.comgrid.server.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
 import ru.comgrid.server.model.Message;
+import ru.comgrid.server.model.MessageId;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface MessageRepository extends JpaRepository<Message, Long>{
+public interface MessageRepository extends JpaRepository<Message, MessageId>{
     Optional<Message> findMessageByChatIdAndXAndY(@Param("chatId") Long chatId, @Param("x") Integer x, @Param("y") Integer y);
 
     List<Message> findAllByChatIdAndXBetweenAndYBetweenOrderByEditedDesc(
