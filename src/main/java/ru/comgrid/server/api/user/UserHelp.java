@@ -6,7 +6,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import java.math.BigDecimal;
 
 public enum UserHelp{; // no elements, utility class
-    @SuppressWarnings("ConstantConditions")
     public static BigDecimal extractId(UserDetails user){
         return new BigDecimal(user.getUsername());
     }

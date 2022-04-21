@@ -12,9 +12,7 @@ import ru.comgrid.server.service.Provider;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -33,6 +31,7 @@ import java.util.List;
 public class Person implements Serializable, Persistable<BigDecimal>{
     @Id
     @Getter
+    @Setter
     @JsonSerialize(using = ToStringSerializer.class)
     @Column(precision = 40)
     private BigDecimal id;
@@ -85,14 +84,14 @@ public class Person implements Serializable, Persistable<BigDecimal>{
     @Getter
     private List<Chat> chats = null;
 
-
-    public Person(BigDecimal id, String name, String email, String avatar) {
-        this.id = id;
-        this.name = name;
-        this.email = email;
-        this.avatar = avatar;
-        this.isNew = false;
-    }
+	public Person(BigDecimal id, String name, String email, String avatar, Provider provider){
+		this.id = id;
+		this.name = name;
+		this.email = email;
+		this.avatar = avatar;
+		this.provider = provider;
+		this.isNew = false;
+	}
 
     public Person() {}
 }

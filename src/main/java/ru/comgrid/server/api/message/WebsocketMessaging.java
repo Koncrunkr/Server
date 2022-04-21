@@ -6,7 +6,6 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import ru.comgrid.server.api.user.AccessService;
@@ -17,7 +16,6 @@ import ru.comgrid.server.model.Message;
 import ru.comgrid.server.model.MessageId;
 import ru.comgrid.server.repository.CellUnionRepository;
 import ru.comgrid.server.repository.MessageRepository;
-import ru.comgrid.server.security.CustomUserDetails;
 
 import java.math.BigDecimal;
 import java.time.Clock;

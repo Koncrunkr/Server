@@ -13,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,7 +28,6 @@ import ru.comgrid.server.repository.ChatParticipantsRepository;
 import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.InvitationRepository;
 import ru.comgrid.server.repository.PersonRepository;
-import ru.comgrid.server.security.CustomUserDetails;
 import ru.comgrid.server.util.EnumSet0;
 
 import javax.validation.Valid;

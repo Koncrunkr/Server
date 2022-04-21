@@ -14,9 +14,7 @@ import ru.comgrid.server.exception.IllegalAccessException;
 import ru.comgrid.server.model.Decoration;
 import ru.comgrid.server.model.Right;
 import ru.comgrid.server.repository.DecorationRepository;
-import ru.comgrid.server.security.CustomUserDetails;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 import static ru.comgrid.server.api.user.UserHelp.extractId;
