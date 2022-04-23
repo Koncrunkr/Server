@@ -46,6 +46,4 @@ class TokenAuthenticationFilter(
             bearerToken.substring(7)
         } else null
     }
-
-    companion object
 }
