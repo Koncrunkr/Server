@@ -6,7 +6,7 @@ To run you have to specify in `application.properties`
 these values:
 ```properties
 spring.datasource.url=
-## spring.flyway.url must be deleted if building for production
+## spring.datasource.url must be deleted if building for production
 spring.datasource.username=
 spring.datasource.password=
 
@@ -19,6 +19,21 @@ spring.flyway.url=
 
 spring.security.oauth2.client.registration.google.client-id=
 spring.security.oauth2.client.registration.google.client-secret=
+spring.security.oauth2.client.registration.google.redirect-uri={baseUrl}/oauth2/callback/{registrationId}
+spring.security.oauth2.client.registration.google.scope=email,profile
+
+spring.security.oauth2.client.provider.vk.authorization-uri=https://oauth.vk.com/authorize
+spring.security.oauth2.client.provider.vk.token-uri=https://oauth.vk.com/access_token
+spring.security.oauth2.client.provider.vk.user-info-uri=https://api.vk.com/method/users.get
+spring.security.oauth2.client.provider.vk.user-name-attribute=id
+spring.security.oauth2.client.provider.vk.user-info-authentication-method=form
+spring.security.oauth2.client.registration.vk.client-id=
+spring.security.oauth2.client.registration.vk.authorization-grant-type=authorization_code
+spring.security.oauth2.client.registration.vk.redirect-uri={baseUrl}/oauth2/callback/{registrationId}
+spring.security.oauth2.client.registration.vk.client-secret=
+# 4194304 - email, 1 - notification, 2 - friends. sum is scope.
+spring.security.oauth2.client.registration.vk.scope=4194307
+
 
 spring.jpa.hibernate.ddl-auto=validate
 # whether to change schema on entity change (google for values)
@@ -40,9 +55,13 @@ spring.servlet.multipart.max-file-size=10MB
 spring.servlet.multipart.max-request-size=10MB
 #maximum request size
 
-server.servlet.session.cookie.secure=true
-# whether to use secure cookie
-server.servlet.session.persistent=true
-# whether to save cookies between restarts
+
+ru.comgrid.auth.tokenSecret=
+# Secret token, should be strong(512 symbols+)
+ru.comgrid.auth.tokenExpirationMsec=864000000
+ru.comgrid.auth.vkAccessToken=not-used
+
+ru.comgrid.auth.authorizedRedirectUris=http://localhost:8080/,https://comgrid.ru,https://comgrid.ru:8443
+
 ```
 To compile `fat jar` use command `mvn clean install spring-boot:repackage -DskipTests`
