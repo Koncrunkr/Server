@@ -1,7 +1,6 @@
 package ru.comgrid.server.security.user
 
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.core.convert.converter.Converter
 import org.springframework.http.RequestEntity
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.GrantedAuthority
@@ -25,17 +24,16 @@ import ru.comgrid.server.security.exception.UserInfoAuthenticationException
 import ru.comgrid.server.security.user.info.OAuth2UserInfo
 import ru.comgrid.server.security.user.info.OAuth2UserInfoFactory.getOAuth2UserInfo
 import ru.comgrid.server.security.user.info.UserPrincipal
-import ru.comgrid.server.security.user.info.converter.VkUserInfoRequestConverter
-import ru.comgrid.server.security.user.info.extractor.UserInfoExtractor
+import ru.comgrid.server.security.user.info.converter.RequestConverter
+import ru.comgrid.server.security.user.info.extractor.UserInfoExtractorService
 import ru.comgrid.server.service.Provider
 
 @Service
 class CustomOAuth2UserService(
     @param:Autowired private val personRepository: PersonRepository,
-    @param:Autowired private val userInfoExtractors: List<UserInfoExtractor>,
+    @param:Autowired private val userInfoExtractorService: UserInfoExtractorService,
+    @param:Autowired private val requestConverter: RequestConverter,
 ) : DefaultOAuth2UserService() {
-    private val requestEntityConverter: Converter<OAuth2UserRequest, RequestEntity<*>> =
-        VkUserInfoRequestConverter()
 
     @Throws(OAuth2AuthenticationException::class)
     override fun loadUser(userRequest: OAuth2UserRequest): OAuth2User {
@@ -52,7 +50,7 @@ class CustomOAuth2UserService(
     @Throws(OAuth2AuthenticationException::class)
     fun defaultLoadUser(userRequest: OAuth2UserRequest): OAuth2User {
         val userNameAttributeName = getUserNameAttributeName(userRequest)
-        val request = this.requestEntityConverter.convert(userRequest)
+        val request = this.requestConverter.convert(userRequest)
         val userAttributes = getResponse(userRequest, request)
         val authorities: MutableSet<GrantedAuthority> = LinkedHashSet()
         authorities.add(OAuth2UserAuthority(userAttributes))
@@ -112,20 +110,17 @@ class CustomOAuth2UserService(
     }
 
     fun getResponse(userRequest: OAuth2UserRequest, request: RequestEntity<*>): Map<String, Any> {
-        val registrationId = userRequest.clientRegistration.registrationId
         return try {
             val response: ResponseEntity<Map<String, Any>> =
                 RestTemplate().exchange(request, Any::class.java) as ResponseEntity<Map<String, Any>>
 
-            userInfoExtractors
-                .first { userInfoExtractor: UserInfoExtractor ->
-                    userInfoExtractor.canProceed(registrationId)
-                }.extract(response.body, userRequest)
+            userInfoExtractorService.extract(response, userRequest)
         } catch (ex: OAuth2AuthorizationException) {
             val userInfoEndpoint = userRequest.clientRegistration.providerDetails.userInfoEndpoint.uri
             throw UserInfoAuthenticationException.of(ex, userInfoEndpoint)
         } catch (ex: UnknownContentTypeException) {
             val userInfoEndpoint = userRequest.clientRegistration.providerDetails.userInfoEndpoint.uri
+            val registrationId = userRequest.clientRegistration.registrationId
             throw UserInfoAuthenticationException.of(ex, userInfoEndpoint, registrationId)
         } catch (ex: RestClientException) {
             throw UserInfoAuthenticationException.of(ex)

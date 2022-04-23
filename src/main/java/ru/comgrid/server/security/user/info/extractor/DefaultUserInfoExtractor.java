@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-public class DefaultUserInfoExtractor implements UserInfoExtractor{
+public class DefaultUserInfoExtractor implements Extractor<Map<String, Object>, Map<String, Object>>{
 	private static final Set<String> AUTH_PROVIDERS = Arrays
 		.stream(Provider.values())
 		.map(Enum::toString)

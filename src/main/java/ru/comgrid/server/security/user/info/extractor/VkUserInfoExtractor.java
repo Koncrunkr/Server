@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class VkUserInfoExtractor implements UserInfoExtractor{
+public class VkUserInfoExtractor implements Extractor<Map<String, Object>, Map<String, Object>>{
 	private static final String vk = Provider.vk.toString();
 
 	@Override

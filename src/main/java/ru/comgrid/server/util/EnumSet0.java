@@ -26,6 +26,7 @@
 package ru.comgrid.server.util;
 
 
+import java.io.Serial;
 import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Iterator;
@@ -88,6 +89,7 @@ public abstract class EnumSet0<E extends Enum<E>> extends AbstractSet<E>
     implements Cloneable, java.io.Serializable
 {
     // declare EnumSet.class serialization compatibility with JDK 8
+    @Serial
     private static final long serialVersionUID = 1009687484059888093L;
 
     /**
