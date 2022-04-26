@@ -80,7 +80,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
 					"/oauth2/**",
 					"/user/login",
 					"/image/upload",
-					"/images/**"
+					"/images/**",
+					"/websocket/**"
 				)
 				.permitAll()
 			.anyRequest()
