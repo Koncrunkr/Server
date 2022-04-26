@@ -9,7 +9,7 @@ import ru.comgrid.server.security.user.info.extractor.Extractor
 
 @Service
 class RequestConverter(
-    @param:Autowired private val requestConverters: List<Extractor<RequestEntity<*>, Nothing>>,
+    @param:Autowired private val requestConverters: List<Converter<RequestEntity<*>>>,
 ){
     fun convert(
         userRequest: OAuth2UserRequest
@@ -18,6 +18,6 @@ class RequestConverter(
         return requestConverters
             .first { converter ->
                 converter.canProceed(registrationId)
-            }.extract(null, userRequest)
+            }.extract(userRequest)
     }
 }

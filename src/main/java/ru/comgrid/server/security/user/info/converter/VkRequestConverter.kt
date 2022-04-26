@@ -6,16 +6,19 @@ import org.springframework.http.MediaType
 import org.springframework.http.RequestEntity
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames
+import org.springframework.stereotype.Component
 import org.springframework.web.util.UriComponentsBuilder
 import ru.comgrid.server.security.user.info.extractor.Extractor
 import ru.comgrid.server.service.Provider
 
 private val vk = Provider.vk.toString()
-class VkRequestConverter : Extractor<RequestEntity<*>, Nothing> {
+
+@Component
+class VkRequestConverter : Converter<RequestEntity<*>> {
 
     override fun canProceed(registrationId: String): Boolean = vk == registrationId
 
-    override fun extract(o: Nothing?, userRequest: OAuth2UserRequest): RequestEntity<*> {
+    override fun extract(userRequest: OAuth2UserRequest): RequestEntity<*> {
         val client = userRequest.clientRegistration
         val headers = HttpHeaders()
         headers.accept = listOf(MediaType.APPLICATION_JSON)

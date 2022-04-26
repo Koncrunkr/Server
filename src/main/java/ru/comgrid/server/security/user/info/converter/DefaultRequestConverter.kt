@@ -8,6 +8,7 @@ import ru.comgrid.server.security.user.info.extractor.Extractor
 import ru.comgrid.server.service.Provider
 import java.util.*
 import java.util.stream.Collectors
+import javax.persistence.Convert
 
 private val AUTH_PROVIDERS = Arrays
     .stream(Provider.values())
@@ -17,14 +18,14 @@ private val AUTH_PROVIDERS = Arrays
 
 @Service
 class DefaultRequestConverter :
-    Extractor<RequestEntity<*>, Nothing> {
+    Converter<RequestEntity<*>> {
     private val defaultConverter = OAuth2UserRequestEntityConverter()
 
     override fun canProceed(registrationId: String): Boolean {
         return AUTH_PROVIDERS.contains(registrationId)
     }
 
-    override fun extract(o: Nothing?, userRequest: OAuth2UserRequest): RequestEntity<*> =
+    override fun extract(userRequest: OAuth2UserRequest): RequestEntity<*> =
         defaultConverter.convert(userRequest)
 
 }
