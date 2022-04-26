@@ -21,23 +21,13 @@
 		<kotlin.version>1.6.21</kotlin.version>
 	</properties>
 
-	<repositories>
-		<repository>
-			<id>space-javaserver</id>
-			<url>https://maven.pkg.jetbrains.space/koncrunkr/p/comgrid/javaserver</url>
-		</repository>
-		<repository>
-			<id>cedarsoft-thirdparty</id>
-			<url>http://maven.cedarsoft.com/content/repositories/thirdparty/</url>
-		</repository>
-	</repositories>
 
-	<distributionManagement>
-		<repository>
-			<id>space-javaserver</id>
-			<url>https://maven.pkg.jetbrains.space/koncrunkr/p/comgrid/javaserver</url>
-		</repository>
-	</distributionManagement>
+<!--	<distributionManagement>-->
+<!--		<repository>-->
+<!--			<id>space-javaserver</id>-->
+<!--			<url>https://maven.pkg.jetbrains.space/koncrunkr/p/comgrid/javaserver</url>-->
+<!--		</repository>-->
+<!--	</distributionManagement>-->
 
 	<dependencies>
 		<!-- JWT library -->
