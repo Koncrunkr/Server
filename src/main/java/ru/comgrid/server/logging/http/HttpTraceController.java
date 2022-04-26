@@ -21,6 +21,7 @@ public class HttpTraceController{
 	}
 
 	@GetMapping("/httptrace")
+	@Secured(ROLE_ADMIN)
 	public HttpTraceDescriptor traces() {
 		return new HttpTraceDescriptor(this.httpTraceRepository.findAll());
 	}

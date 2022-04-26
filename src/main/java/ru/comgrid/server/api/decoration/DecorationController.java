@@ -14,6 +14,8 @@ import ru.comgrid.server.exception.IllegalAccessException;
 import ru.comgrid.server.model.Decoration;
 import ru.comgrid.server.model.Right;
 import ru.comgrid.server.repository.DecorationRepository;
+import ru.comgrid.server.security.annotation.CurrentUser;
+import ru.comgrid.server.security.user.info.UserPrincipal;
 
 import java.util.List;
 
@@ -35,18 +37,18 @@ public class DecorationController{
 	}
 
 	@PostMapping("/list")
-	public ResponseEntity<List<Decoration>> getDecorations(
-		@AuthenticationPrincipal UserDetails user,
+	public List<Decoration> getDecorations(
+		@CurrentUser UserPrincipal user,
 		@RequestBody DecorationRequest decorationRequest
 	){
 		if(!accessService.hasAccessTo(extractId(user), decorationRequest.getChatId(), Right.Read))
 			throw new IllegalAccessException("chat.read_messages");
 
-		return ResponseEntity.ok(
-			decorationRepository.findAllByCellUnionIdInAndAndChatId(
+		return decorationRepository.findAllByCellUnionIdInAndAndChatId(
 				decorationRequest.getCellUnionIds(),
 				decorationRequest.getChatId()
-			)
 		);
 	}
+
+
 }

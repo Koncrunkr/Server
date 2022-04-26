@@ -21,6 +21,8 @@ import ru.comgrid.server.model.Right;
 import ru.comgrid.server.repository.CellUnionRepository;
 import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.MessageRepository;
+import ru.comgrid.server.security.annotation.CurrentUser;
+import ru.comgrid.server.security.user.info.UserPrincipal;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -53,7 +55,7 @@ public class MessageController{
     @ApiResponse(responseCode = "422", description = "time.negative-or-future, means you've entered negative time or time that has not yet happened")
     @PostMapping("/list")
     public ResponseEntity<List<Message>> getMessages(
-        @AuthenticationPrincipal UserDetails user,
+        @CurrentUser UserPrincipal user,
         @RequestBody MessagesRequest messagesRequest
     ){
         var userId = UserHelp.extractId(user);
@@ -99,7 +101,7 @@ public class MessageController{
         """)
     @GetMapping("/unions")
     public ResponseEntity<List<CellUnion>> cellUnions(
-        @AuthenticationPrincipal UserDetails user,
+        @CurrentUser UserPrincipal user,
         @RequestParam long chatId,
         @RequestParam(required = false, defaultValue = "0") int xcoordLeftTop,
         @RequestParam(required = false, defaultValue = "0") int ycoordLeftTop,

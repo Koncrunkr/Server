@@ -5,26 +5,29 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+import ru.comgrid.server.exception.IllegalAccessException;
+import ru.comgrid.server.exception.NotFoundException;
 import ru.comgrid.server.model.Chat;
 import ru.comgrid.server.model.Person;
 import ru.comgrid.server.repository.ChatParticipantsRepository;
 import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.PersonRepository;
+import ru.comgrid.server.security.AppProperties;
+import ru.comgrid.server.security.annotation.CurrentUser;
+import ru.comgrid.server.security.user.info.UserPrincipal;
 
 import java.util.List;
 
+import static ru.comgrid.server.security.UserRole.ROLE_ADMIN;
 
 @RestController
 @RequestMapping(value = "/user", produces = "application/json; charset=utf-8")
 public class UserController{
 
+    private final AppProperties appProperties;
     private final PersonRepository personRepository;
     private final ChatParticipantsRepository chatParticipantsRepository;
     private final ChatRepository chatRepository;
@@ -33,10 +36,12 @@ public class UserController{
      * @hidden
      */
     public UserController(
+        AppProperties appProperties,
         PersonRepository personRepository,
         ChatParticipantsRepository chatParticipantsRepository,
         ChatRepository chatRepository
     ){
+        this.appProperties = appProperties;
         this.personRepository = personRepository;
         this.chatParticipantsRepository = chatParticipantsRepository;
         this.chatRepository = chatRepository;
@@ -46,7 +51,7 @@ public class UserController{
     @Operation(summary = "Get user info")
     @GetMapping("/info")
     public ResponseEntity<Person> getUserInfo(
-        @AuthenticationPrincipal UserDetails user,
+        @CurrentUser UserPrincipal user,
         @RequestParam(required = false, defaultValue = "false") boolean includeChats
     ){
         var id = UserHelp.extractId(user);
@@ -73,9 +78,44 @@ public class UserController{
     })
     @GetMapping("/login")
     public ResponseEntity<String> checkIfUserLoggedIn(
-        @AuthenticationPrincipal UserDetails user
+        @CurrentUser UserPrincipal user
     ){
         return user != null ? ResponseEntity.ok().build() : ResponseEntity.status(401).build();
     }
 
+    private static final SimpleGrantedAuthority adminAuthority = new SimpleGrantedAuthority(ROLE_ADMIN);
+    @PostMapping("/make_admin")
+    @Transactional
+    public void makePersonAnAdmin(
+        @CurrentUser UserPrincipal user,
+        @RequestParam(required = false) String adminKey,
+        @RequestParam(required = false) String personId
+    ){
+        if(adminKey == null){
+            if(!user.containsAuthority(adminAuthority)){
+                throw new IllegalAccessException("user.not_admin");
+            }
+        }else{
+            checkAdminKey(adminKey);
+        }
+
+        if(personId == null){
+            if(!user.containsAuthority(adminAuthority)){
+                @SuppressWarnings("OptionalGetWithoutIsPresent")
+                var person = personRepository.findById(user.getId()).get();
+                person.getAuthorities().add(adminAuthority);
+                personRepository.save(person);
+            }
+        }else{
+            var person = personRepository.findById(user.getId())
+                .orElseThrow(() -> new NotFoundException("user.not_found"));
+            person.getAuthorities().add(adminAuthority);
+            personRepository.save(person);
+        }
+    }
+
+    private void checkAdminKey(String adminKey){
+        if(!appProperties.getAuth().getAdminKey().equals(adminKey))
+            throw new IllegalAccessException("admin_key.wrong");
+    }
 }

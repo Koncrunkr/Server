@@ -15,6 +15,7 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.exception.IllegalAccessException;
+import ru.comgrid.server.security.user.info.UserPrincipal;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -63,7 +64,7 @@ public class UserSubscriptionInterceptor implements ChannelInterceptor{
 
         Authentication user = (Authentication) headerAccessor.getUser();
         assert user != null;
-        BigDecimal userId = UserHelp.extractId((UserDetails) user.getPrincipal());
+        BigDecimal userId = UserHelp.extractId((UserPrincipal) user.getPrincipal());
 
         if(!individualDestinationInterceptors.get(destination).hasAccess(userId, destinationId)){
             throw new IllegalAccessException("destination." + destination);

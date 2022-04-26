@@ -7,7 +7,10 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.data.domain.Persistable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import ru.comgrid.server.service.Provider;
+import ru.comgrid.server.util.GrantedAuthorityConverter;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -28,28 +31,22 @@ import java.util.List;
  * </pre>
  */
 @Entity
+@Getter
+@Setter
 public class Person implements Serializable, Persistable<BigDecimal>{
     @Id
-    @Getter
-    @Setter
     @JsonSerialize(using = ToStringSerializer.class)
     @Column(precision = 40)
     private BigDecimal id;
 
     @Column(length = 50, nullable = false)
-    @Getter
-    @Setter
     private String name;
 
     @Column(unique = true)
-    @Getter
-    @Setter
     private String email;
 
     @Column(nullable = false)
     @Schema(defaultValue = "url")
-    @Getter
-    @Setter
     private String avatar;
 
     // We don't use passwords yet. Even if we will it doesn't mean we will store them raw.
@@ -64,25 +61,22 @@ public class Person implements Serializable, Persistable<BigDecimal>{
 //    private Date birthDate;
 
     @Column(updatable = false, nullable = false)
-    @Getter
     private final LocalDateTime created = LocalDateTime.now();
 
     @JsonIgnore
     @Transient
-    @Setter
-    @Getter
     private boolean isNew;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Setter
-    @Getter
     private Provider provider;
 
     @Transient
-    @Setter
-    @Getter
     private List<Chat> chats = null;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Convert(converter = GrantedAuthorityConverter.class)
+    private List<GrantedAuthority> authorities;
 
 	public Person(BigDecimal id, String name, String email, String avatar, Provider provider){
 		this.id = id;

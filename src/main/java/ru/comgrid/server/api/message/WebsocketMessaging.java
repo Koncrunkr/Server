@@ -4,10 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import ru.comgrid.server.api.WebsocketDestination;
 import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.exception.RequestException;
@@ -16,6 +15,8 @@ import ru.comgrid.server.model.Message;
 import ru.comgrid.server.model.MessageId;
 import ru.comgrid.server.repository.CellUnionRepository;
 import ru.comgrid.server.repository.MessageRepository;
+import ru.comgrid.server.security.annotation.CurrentUser;
+import ru.comgrid.server.security.user.info.UserPrincipal;
 
 import java.math.BigDecimal;
 import java.time.Clock;
@@ -51,7 +52,7 @@ public class WebsocketMessaging{
 //    @Transactional
 //    @MessageMapping("/table_message/edit_or_send")
 //    public void processNewOrEditMessage(
-//        @AuthenticationPrincipal UserDetails user,
+//        @CurrentUser UserPrincipal user,
 //        @Payload Message chatMessage
 //    ){
 //        if(chatMessage.getId() != null){
@@ -75,7 +76,7 @@ public class WebsocketMessaging{
     @Transactional
     @MessageMapping("/table_message/edit_or_send")
     public void processNewMessage(
-        @AuthenticationPrincipal UserDetails user,
+        @CurrentUser UserPrincipal user,
         @Payload Message chatMessage
     ){
         BigDecimal personId = UserHelp.extractId(user);
@@ -102,7 +103,7 @@ public class WebsocketMessaging{
 //    @Transactional
 //    @MessageMapping("/table_message/edit")
 //    public void processEditMessage(
-//        @AuthenticationPrincipal UserDetails user,
+//        @CurrentUser UserPrincipal user,
 //        @Payload Message chatMessage
 //    ){
 //        BigDecimal personId = UserHelp.extractId(user);
@@ -123,7 +124,7 @@ public class WebsocketMessaging{
     @Transactional
     @MessageMapping("/table_cell_union")
     public void processNewCellsUnion(
-        @AuthenticationPrincipal UserDetails user,
+        @CurrentUser UserPrincipal user,
         @Payload CellUnion newCellUnion
     ){
         BigDecimal personId = UserHelp.extractId(user);
@@ -139,7 +140,7 @@ public class WebsocketMessaging{
     @Transactional
     @MessageMapping("/table_cell_union/edit")
     public void processEditCellsUnion(
-        @AuthenticationPrincipal UserDetails user,
+        @CurrentUser UserPrincipal user,
         @Payload CellUnion existingCellUnion
     ){
         BigDecimal personId = UserHelp.extractId(user);

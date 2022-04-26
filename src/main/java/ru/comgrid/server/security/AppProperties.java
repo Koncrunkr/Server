@@ -24,6 +24,11 @@ public class AppProperties{
 		private String tokenSecret;
 		private long tokenExpirationMsec;
 		private List<String> authorizedRedirectUris = new ArrayList<>();
+		private String adminKey;
+
+		public String getAdminKey(){
+			return Encoders.BASE64.encode(adminKey.getBytes(StandardCharsets.UTF_8));
+		}
 
 		public String getTokenSecret(){
 			return Encoders.BASE64.encode(tokenSecret.getBytes(StandardCharsets.UTF_8));

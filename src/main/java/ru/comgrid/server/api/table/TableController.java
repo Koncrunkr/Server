@@ -28,6 +28,8 @@ import ru.comgrid.server.repository.ChatParticipantsRepository;
 import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.InvitationRepository;
 import ru.comgrid.server.repository.PersonRepository;
+import ru.comgrid.server.security.annotation.CurrentUser;
+import ru.comgrid.server.security.user.info.UserPrincipal;
 import ru.comgrid.server.util.EnumSet0;
 
 import javax.validation.Valid;
@@ -80,7 +82,7 @@ public class TableController{
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Transactional
     public ResponseEntity<Chat> createTable(
-        @AuthenticationPrincipal UserDetails user,
+        @CurrentUser UserPrincipal user,
         @ModelAttribute @Valid NewChat newChat
     ){
         FileController.ImageEntity imageEntity = fileController.uploadImage(newChat.avatarFile, newChat.avatarLink);
@@ -116,7 +118,7 @@ public class TableController{
     @ApiResponse(description = "Chat not found", responseCode = "404")
     @GetMapping("/info")
     public ResponseEntity<Chat> infoAboutTable(
-        @AuthenticationPrincipal UserDetails user,
+        @CurrentUser UserPrincipal user,
         @RequestParam long chatId,
         @RequestParam(required = false, defaultValue = "false") boolean includeParticipants
     ){
@@ -156,7 +158,7 @@ public class TableController{
     @PostMapping("/add_participant")
     @Transactional
     public void addParticipant(
-        @AuthenticationPrincipal UserDetails user,
+        @CurrentUser UserPrincipal user,
         @Valid @RequestBody AddParticipantRequest addParticipantRequest
     ){
         var adminUserId = UserHelp.extractId(user);
@@ -186,7 +188,7 @@ public class TableController{
     @Operation(summary = "Change rights of user")
     @Transactional
     public void changeRights(
-        @AuthenticationPrincipal UserDetails user,
+        @CurrentUser UserPrincipal user,
         @Valid @RequestBody ChangeRightsRequest changeRightsRequest
     ){
         var adminUserId = UserHelp.extractId(user);
@@ -215,7 +217,7 @@ public class TableController{
     @Transactional
     @PostMapping("/invitation_link")
     public InvitationSuccessResponse acceptInvitation(
-        @AuthenticationPrincipal UserDetails user,
+        @CurrentUser UserPrincipal user,
         @RequestBody InvitationLinkRequest code
     ){
         var userId = UserHelp.extractId(user);
@@ -243,7 +245,7 @@ public class TableController{
     @Transactional
     @GetMapping("/invitation_link")
     public InvitationLinkRequest getInvitationLink(
-        @AuthenticationPrincipal UserDetails user,
+        @CurrentUser UserPrincipal user,
         @RequestParam long chatId
     ){
         var userId = UserHelp.extractId(user);
@@ -264,7 +266,7 @@ public class TableController{
     @Transactional
     @DeleteMapping("/invitation_link")
     public void revokeInvitationLink(
-        @AuthenticationPrincipal UserDetails user,
+        @CurrentUser UserPrincipal user,
         @RequestParam long chatId
     ){
         var userId = UserHelp.extractId(user);

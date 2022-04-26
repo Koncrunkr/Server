@@ -7,11 +7,15 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import ru.comgrid.server.model.Person;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static ru.comgrid.server.security.UserRole.ROLE_USER;
+
 public class UserPrincipal implements OAuth2User, UserDetails{
+	private static final SimpleGrantedAuthority roleUser = new SimpleGrantedAuthority(ROLE_USER);
 	private final BigDecimal id;
 	private final String name;
 	private final String email;
@@ -39,7 +43,7 @@ public class UserPrincipal implements OAuth2User, UserDetails{
 			person.getId(),
 			person.getName(),
 			person.getEmail(),
-			List.of(new SimpleGrantedAuthority("ROLE_USER"))
+			requireRoleUser(person.getAuthorities())
 		);
 	}
 
@@ -48,9 +52,17 @@ public class UserPrincipal implements OAuth2User, UserDetails{
 			person.getId(),
 			person.getName(),
 			person.getEmail(),
-			List.of(new SimpleGrantedAuthority("ROLE_USER")),
+			requireRoleUser(person.getAuthorities()),
 			attributes
 		);
+	}
+
+	private static List<GrantedAuthority> requireRoleUser(List<GrantedAuthority> authorities){
+		if(authorities == null)
+			authorities = new ArrayList<>(1);
+		if(!authorities.contains(roleUser))
+			authorities.add(roleUser);
+		return authorities;
 	}
 
 	@Override
@@ -100,5 +112,9 @@ public class UserPrincipal implements OAuth2User, UserDetails{
 	@Override
 	public String getName(){
 		return name;
+	}
+
+	public boolean containsAuthority(GrantedAuthority authority){
+		return getAuthorities().contains(authority);
 	}
 }

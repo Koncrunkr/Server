@@ -1,10 +1,11 @@
 package ru.comgrid.server.api.user;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import ru.comgrid.server.api.message.WebsocketDestination;
+import ru.comgrid.server.api.WebsocketDestination;
 import ru.comgrid.server.api.table.TableHelp;
 import ru.comgrid.server.exception.*;
 import ru.comgrid.server.exception.IllegalAccessException;
@@ -46,13 +47,15 @@ public class AccessService{
         this.chatRepository = chatRepository;
     }
 
-    public boolean hasAccessTo(BigDecimal userId, long chatId, Right... rights){
+    public boolean hasAccessTo(BigDecimal personId, long chatId, Right... rights){
         Optional<TableParticipants> participance = participantsRepository.findById(new TableParticipant(
             chatId,
-            userId
+            personId
         ));
-        if(participance.isEmpty())
+        if(participance.isEmpty()){
+            sendException(personId, new IllegalAccessException("person.not_in_chat"));
             return false;
+        }
 
         return participance.get().rights().containsAll(Arrays.asList(rights));
     }
@@ -191,8 +194,10 @@ public class AccessService{
             personId
         ));
 
-        if(participance.isEmpty())
+        if(participance.isEmpty()){
+            sendException(personId, new IllegalAccessException("user.not_in_chat"));
             return false;
+        }
         var rights = participance.get().rights();
 
         Optional<CellUnion> existingCellUnion = cellUnionRepository.findById(cellUnion.getId());
@@ -207,8 +212,10 @@ public class AccessService{
     private boolean hasAccessToEditCellUnion(BigDecimal personId, CellUnion newCellUnion, CellUnion existingCellUnion, EnumSet0<Right> rights){
         if(rights.contains(Right.EditOthersCellUnions))
             return true; // user can edit all cell unions
-        if(!rights.contains(Right.EditOwnCellUnions))
+        if(!rights.contains(Right.EditOwnCellUnions)){
+            sendException(personId, new IllegalAccessException("cell_union.edit"));
             return false; // user does not have right to edit any cell unions
+        }
 
         if(samePerson(existingCellUnion.getCreatorId(), personId)){
             if(doesNotIntersect(personId, newCellUnion, existingCellUnion.getId())){
@@ -244,5 +251,23 @@ public class AccessService{
         }
         cellUnionRepository.deleteAll(inside);
         return true;
+    }
+
+    public boolean hasAccessToDecorateCellUnion(@NotNull BigDecimal personId, @NotNull CellUnion cellUnion){
+        Optional<TableParticipants> participance = participantsRepository.findById(new TableParticipant(
+            cellUnion.getChatId(),
+            personId
+        ));
+
+        if(participance.isEmpty()){
+            sendException(personId, new IllegalAccessException("user.not_in_chat"));
+            return false;
+        }
+        var rights = participance.get().rights();
+        if(rights.contains(Right.EditOthersCellUnions))
+            return true;
+        if(!rights.contains(Right.EditOwnCellUnions))
+            return false;
+        return samePerson(cellUnion.getCreatorId(), personId);
     }
 }
