@@ -1,16 +1,14 @@
 package ru.comgrid.server.logging.websocket;
 
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.Instant;
 import java.util.Map;
 
 @AllArgsConstructor
 @Getter
-public final class WebSocketTrace{
+public final class WebsocketTrace{
 	private final Instant timestamp = Instant.now();
 
 	private String sessionId;

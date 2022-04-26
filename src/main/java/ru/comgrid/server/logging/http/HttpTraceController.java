@@ -1,20 +1,22 @@
 package ru.comgrid.server.logging.http;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.trace.http.HttpTrace;
-import org.springframework.boot.actuate.trace.http.HttpTraceRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.comgrid.server.logging.TraceRepository;
 
+import java.util.Collection;
 import java.util.List;
+
+import static ru.comgrid.server.security.UserRole.ROLE_ADMIN;
 
 @RestController
 @ConditionalOnProperty(prefix = "ru.comgrid.http.trace", name = "enabled")
 public class HttpTraceController{
-	private final HttpTraceRepository httpTraceRepository;
+	private final TraceRepository<HttpTrace> httpTraceRepository;
 
-	public HttpTraceController(@Autowired HttpTraceRepository httpTraceRepository){
+	public HttpTraceController(TraceRepository<HttpTrace> httpTraceRepository){
 		this.httpTraceRepository = httpTraceRepository;
 	}
 
@@ -24,11 +26,11 @@ public class HttpTraceController{
 	}
 
 	/**
-	 * A description of an application's {@link HttpTrace} entries. Primarily intended for
+	 * A description of an application's {@link TraceRepository} entries. Primarily intended for
 	 * serialization to JSON.
 	 */
-	public record HttpTraceDescriptor(List<HttpTrace> traces){
-		public List<HttpTrace> getTraces(){
+	public record HttpTraceDescriptor(Collection<HttpTrace> traces){
+		public Collection<HttpTrace> getTraces(){
 			return this.traces;
 		}
 	}

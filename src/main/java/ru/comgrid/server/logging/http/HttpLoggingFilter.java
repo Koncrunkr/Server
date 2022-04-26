@@ -1,14 +1,21 @@
 package ru.comgrid.server.logging.http;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.util.IOUtils;
-import org.springframework.boot.actuate.trace.http.HttpTrace;
-import org.springframework.boot.actuate.trace.http.HttpTraceRepository;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServletServerHttpRequest;
+import org.springframework.lang.NonNull;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
+import ru.comgrid.server.logging.TraceRepository;
+import ru.comgrid.server.security.user.info.UserPrincipal;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -24,16 +31,21 @@ import java.util.regex.Pattern;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Component
+@Order(100)
 public class HttpLoggingFilter extends OncePerRequestFilter{
+	private static final ObjectMapper objectMapper = new ObjectMapper();
+	private final TraceRepository<HttpTrace> httpTraceRepository;
 
-	private final HttpTraceRepository httpTraceRepository;
-
-	public HttpLoggingFilter(HttpTraceRepository httpTraceRepository){
+	public HttpLoggingFilter(TraceRepository<HttpTrace> httpTraceRepository){
 		this.httpTraceRepository = httpTraceRepository;
 	}
 
 	@Override
-	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException{
+	protected void doFilterInternal(
+		@NotNull HttpServletRequest request,
+		@NotNull HttpServletResponse response,
+		@NotNull FilterChain filterChain
+	) throws ServletException, IOException{
 		if(IgnoredRequests.isIgnored(request.getRequestURI())){
 			filterChain.doFilter(request, response);
 			return;
@@ -49,21 +61,24 @@ public class HttpLoggingFilter extends OncePerRequestFilter{
 			status = response.getStatus();
 		}
 		finally {
-			Map<String, List<String>> headers = extractHeaders(responseWrapper);
-			headers.put("body", List.of(IOUtils.toString(responseWrapper.getContentInputStream(), UTF_8)));
-
+			HttpHeaders headers = extractHeaders(responseWrapper);
 			Principal principal = request.getUserPrincipal();
+
 			HttpTrace httpTrace = new HttpTrace(
 				new HttpTrace.Request(
 					requestWrapper.getMethod(),
 					URI.create(requestWrapper.getRequestURI()),
 					new ServletServerHttpRequest(requestWrapper).getHeaders(),
+					objectMapper.readTree(requestWrapper.getContentAsByteArray()),
 					requestWrapper.getRemoteAddr()
 				),
-				new HttpTrace.Response(status, headers),
+				new HttpTrace.Response(
+					status,
+					objectMapper.readTree(responseWrapper.getContentAsByteArray()),
+					headers
+				),
+				principal,
 				Instant.now(),
-				new HttpTrace.Principal(principal == null ? null : principal.getName()),
-				new HttpTrace.Session(request.getSession(false) == null ? null : request.getSession(false).getId()),
 				System.nanoTime() - startTime
 			);
 			httpTraceRepository.add(httpTrace);
@@ -71,8 +86,8 @@ public class HttpLoggingFilter extends OncePerRequestFilter{
 		}
 	}
 
-	private static Map<String, List<String>> extractHeaders(HttpServletResponse response) {
-		Map<String, List<String>> headers = new LinkedHashMap<>();
+	private static HttpHeaders extractHeaders(HttpServletResponse response) {
+		HttpHeaders headers = new HttpHeaders();
 		for (String name : response.getHeaderNames()) {
 			headers.put(name, new ArrayList<>(response.getHeaders(name)));
 		}

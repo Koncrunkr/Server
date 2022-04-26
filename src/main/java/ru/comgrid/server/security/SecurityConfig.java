@@ -1,6 +1,7 @@
 package ru.comgrid.server.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.actuate.trace.http.HttpTraceRepository;
 import org.springframework.boot.actuate.trace.http.InMemoryHttpTraceRepository;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -15,6 +16,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+import ru.comgrid.server.logging.InMemoryTraceRepository;
+import ru.comgrid.server.logging.TraceRepository;
+import ru.comgrid.server.logging.http.HttpTrace;
 import ru.comgrid.server.security.token.TokenAuthenticationFilter;
 import ru.comgrid.server.security.token.TokenProvider;
 import ru.comgrid.server.security.token.request.HttpCookieOAuth2AuthorizationRequestRepository;
@@ -123,12 +127,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
     }
 
 	@Bean
-	public HttpTraceRepository httpTraceRepository(){
-		return new InMemoryHttpTraceRepository();
+	public TraceRepository<HttpTrace> httpTraceTraceRepository(@Value("${ru.comgrid.trace.max-count}") int capacity){
+		return new InMemoryTraceRepository<>(capacity);
 	}
-
-	//    @Bean
-	//    public OAuth2UserService<OidcUserRequest, OidcUser> loginService(){
-	//        return new LoginSuccessRequestHandler(personRepository);
-	//    }
 }

@@ -7,19 +7,25 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Description;
 import org.springframework.messaging.support.InterceptableChannel;
+import ru.comgrid.server.logging.InMemoryTraceRepository;
+import ru.comgrid.server.logging.TraceRepository;
 
 @Configuration
 @ConditionalOnProperty(prefix = "ru.comgrid.websocket.trace", name = "enabled")
-public class WebSocketTraceConfiguration{
-
+public class WebsocketTraceConfiguration{
 	@Bean
-	public InMemoryWebSocketTraceRepository webSocketTraceRepository(@Value("${ru.comgrid.websocket.trace.max-count}") int capacity){
-		return new InMemoryWebSocketTraceRepository(capacity);
+	@Description("Repository for storing all traces")
+	public TraceRepository<WebsocketTrace> webSocketTraceTraceRepository(
+		@Value("${ru.comgrid.trace.max-count}") int capacity
+	){
+		return new InMemoryTraceRepository<>(capacity);
 	}
 
 	@Bean
 	@Description("Channel interceptor for WebSocket tracing")
-	public WebsocketTraceChannelInterceptor websocketTraceChannelInterceptor(WebSocketTraceRepository webSocketTraceRepository){
+	public WebsocketTraceChannelInterceptor websocketTraceChannelInterceptor(
+		TraceRepository<WebsocketTrace> webSocketTraceRepository
+	){
 		return new WebsocketTraceChannelInterceptor(webSocketTraceRepository);
 	}
 

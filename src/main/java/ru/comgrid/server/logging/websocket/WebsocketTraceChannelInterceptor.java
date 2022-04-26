@@ -6,6 +6,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.NativeMessageHeaderAccessor;
+import ru.comgrid.server.logging.TraceRepository;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -14,9 +15,9 @@ import java.util.Map;
 
 public class WebsocketTraceChannelInterceptor implements ChannelInterceptor{
 
-	private final WebSocketTraceRepository traceRepository;
+	private final TraceRepository<WebsocketTrace> traceRepository;
 
-	public WebsocketTraceChannelInterceptor(WebSocketTraceRepository traceRepository){
+	public WebsocketTraceChannelInterceptor(TraceRepository<WebsocketTrace> traceRepository){
 		this.traceRepository = traceRepository;
 	}
 
@@ -32,7 +33,7 @@ public class WebsocketTraceChannelInterceptor implements ChannelInterceptor{
 		if(headerAccessor.getCommand() == null)
 			return;
 
-		final var webSocketTrace = new WebSocketTrace(
+		final var webSocketTrace = new WebsocketTrace(
 			headerAccessor.getSessionId(),
 			headerAccessor.getCommand().name(),
 			getNativeHeaders(headerAccessor),
