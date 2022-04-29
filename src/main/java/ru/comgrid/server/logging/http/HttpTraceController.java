@@ -7,12 +7,11 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.comgrid.server.logging.TraceRepository;
 
 import java.util.Collection;
-import java.util.List;
 
 import static ru.comgrid.server.security.UserRole.ROLE_ADMIN;
 
 @RestController
-@ConditionalOnProperty(prefix = "ru.comgrid.http.trace", name = "enabled")
+@ConditionalOnProperty(prefix = "ru.comgrid.http", name = "trace-enabled")
 public class HttpTraceController{
 	private final TraceRepository<HttpTrace> httpTraceRepository;
 

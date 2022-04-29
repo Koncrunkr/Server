@@ -1,21 +1,19 @@
 package ru.comgrid.server.logging.http;
 
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.micrometer.core.instrument.util.IOUtils;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.server.ServletServerHttpRequest;
-import org.springframework.lang.NonNull;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
 import ru.comgrid.server.logging.TraceRepository;
-import ru.comgrid.server.security.user.info.UserPrincipal;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -25,13 +23,13 @@ import java.io.IOException;
 import java.net.URI;
 import java.security.Principal;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Set;
 import java.util.regex.Pattern;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 @Component
 @Order(100)
+@ConditionalOnProperty(prefix = "ru.comgrid.http", name = "trace-enabled")
 public class HttpLoggingFilter extends OncePerRequestFilter{
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	private final TraceRepository<HttpTrace> httpTraceRepository;
@@ -61,21 +59,33 @@ public class HttpLoggingFilter extends OncePerRequestFilter{
 			filterChain.doFilter(requestWrapper, responseWrapper);
 			status = response.getStatus();
 		}
-		finally {
+		finally{
 			HttpHeaders headers = extractHeaders(responseWrapper);
 			Principal principal = request.getUserPrincipal();
 
+			JsonNode requestBody;
+			try{
+				requestBody = objectMapper.readTree(requestWrapper.getContentAsByteArray());
+			}catch(JsonParseException e){
+				requestBody = objectMapper.nullNode();
+			}
+			JsonNode responseBody;
+			try{
+				responseBody = objectMapper.readTree(responseWrapper.getContentAsByteArray());
+			}catch(JsonParseException e){
+				responseBody = objectMapper.nullNode();
+			}
 			HttpTrace httpTrace = new HttpTrace(
 				new HttpTrace.Request(
 					requestWrapper.getMethod(),
 					URI.create(requestWrapper.getRequestURI()),
 					new ServletServerHttpRequest(requestWrapper).getHeaders(),
-					objectMapper.readTree(requestWrapper.getContentAsByteArray()),
+					requestBody,
 					requestWrapper.getRemoteAddr()
 				),
 				new HttpTrace.Response(
 					status,
-					objectMapper.readTree(responseWrapper.getContentAsByteArray()),
+					responseBody,
 					headers
 				),
 				principal,

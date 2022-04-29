@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Map;
 
 public class WebsocketTraceChannelInterceptor implements ChannelInterceptor{
-
 	private final TraceRepository<WebsocketTrace> traceRepository;
 
 	public WebsocketTraceChannelInterceptor(TraceRepository<WebsocketTrace> traceRepository){

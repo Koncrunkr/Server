@@ -12,7 +12,7 @@ import java.util.Collection;
 import static ru.comgrid.server.security.UserRole.ROLE_ADMIN;
 
 @RestController
-@ConditionalOnProperty(prefix = "ru.comgrid.websocket.trace", name = "enabled")
+@ConditionalOnProperty(prefix = "ru.comgrid.websocket", name = "trace-enabled")
 public class WebsocketTraceController{
 	private final TraceRepository<WebsocketTrace> webSocketTraceRepository;
 
@@ -21,7 +21,7 @@ public class WebsocketTraceController{
 	}
 
 	@GetMapping("/websockettrace")
-//	@Secured(ROLE_ADMIN)
+	@Secured(ROLE_ADMIN)
 	public WebsocketTraceDescriptor traces(){
 		return new WebsocketTraceDescriptor(this.webSocketTraceRepository.findAll());
 	}

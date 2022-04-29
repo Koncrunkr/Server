@@ -14,6 +14,9 @@ import java.util.List;
 @ConfigurationProperties(prefix = "ru.comgrid")
 public class AppProperties{
 	private final Auth auth = new Auth();
+	private final Websocket websocket = new Websocket();
+	private final Http http = new Http();
+	private final Table table = new Table();
 
 	@Getter
 	@Setter
@@ -33,5 +36,33 @@ public class AppProperties{
 		public String getTokenSecret(){
 			return Encoders.BASE64.encode(tokenSecret.getBytes(StandardCharsets.UTF_8));
 		}
+	}
+
+	@Getter
+	@Setter
+	public static class Websocket{
+		private int maxMessageSizeBytes;
+		private boolean traceEnabled;
+		private int traceMaxCount;
+	}
+
+	@Setter
+	@Getter
+	public static class Http{
+		private boolean traceEnabled;
+		private int traceMaxCount;
+	}
+
+	@Setter
+	@Getter
+	public static class Images{
+		private String fileRoute;
+		private List<String> allowedExtensions;
+	}
+
+	@Setter
+	@Getter
+	public static class Table{
+		private int maxTableSize;
 	}
 }

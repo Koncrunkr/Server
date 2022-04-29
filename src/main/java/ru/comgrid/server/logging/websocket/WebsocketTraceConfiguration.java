@@ -1,6 +1,5 @@
 package ru.comgrid.server.logging.websocket;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -9,16 +8,15 @@ import org.springframework.context.annotation.Description;
 import org.springframework.messaging.support.InterceptableChannel;
 import ru.comgrid.server.logging.InMemoryTraceRepository;
 import ru.comgrid.server.logging.TraceRepository;
+import ru.comgrid.server.security.AppProperties;
 
 @Configuration
-@ConditionalOnProperty(prefix = "ru.comgrid.websocket.trace", name = "enabled")
+@ConditionalOnProperty(prefix = "ru.comgrid.websocket", name = "trace-enabled")
 public class WebsocketTraceConfiguration{
 	@Bean
 	@Description("Repository for storing all traces")
-	public TraceRepository<WebsocketTrace> webSocketTraceTraceRepository(
-		@Value("${ru.comgrid.trace.max-count}") int capacity
-	){
-		return new InMemoryTraceRepository<>(capacity);
+	public TraceRepository<WebsocketTrace> webSocketTraceTraceRepository(AppProperties appProperties){
+		return new InMemoryTraceRepository<>(appProperties.getWebsocket().getTraceMaxCount());
 	}
 
 	@Bean
