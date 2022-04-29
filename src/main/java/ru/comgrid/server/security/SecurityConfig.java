@@ -81,7 +81,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
 					"/user/login",
 					"/image/upload",
 					"/images/**",
-					"/websocket/**"
+					"/websocket/**",
+					"/swagger-ui/index.html",
+					"/swagger-ui/**",
+					"/v3/api-docs/**"
 				)
 				.permitAll()
 			.anyRequest()

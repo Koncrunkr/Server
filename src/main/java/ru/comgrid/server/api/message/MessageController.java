@@ -3,11 +3,10 @@ package ru.comgrid.server.api.message;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import ru.comgrid.server.api.table.TableHelp;
 import ru.comgrid.server.api.user.AccessService;
@@ -29,6 +28,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(value = "/message", produces = "application/json; charset=utf-8")
+@SecurityRequirement(name = "bearerAuth")
 public class MessageController{
 
     private final MessageRepository messageRepository;

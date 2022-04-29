@@ -1,9 +1,13 @@
 package ru.comgrid.server.api.util;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -12,8 +16,10 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.beans.factory.annotation.Value;
-import ru.comgrid.server.exception.*;
+import ru.comgrid.server.exception.ImageDoesNotExistException;
+import ru.comgrid.server.exception.ImageEmptyParamException;
+import ru.comgrid.server.exception.ImageWriteToFileException;
+import ru.comgrid.server.exception.InvalidLinkException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -35,8 +41,8 @@ public class FileController{
 	private final Set<String> allowedExtensions;
 
 	public FileController(
-		@Value("${ru.comgrid.server.file-controller.image-path}") String fileRoute,
-		@Value("${ru.comgrid.server.image-compressor.allowed-extensions}") List<String> allowedExtensions,
+		@Value("${ru.comgrid.images.fileRoute}") String fileRoute,
+		@Value("${ru.comgrid.images.allowedExtensions}") List<String> allowedExtensions,
 		@Autowired ImageService imageService
 	) throws IOException{
 		this.fileRoute = fileRoute;

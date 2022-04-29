@@ -1,9 +1,7 @@
 package ru.comgrid.server.api.decoration;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,6 +22,7 @@ import static ru.comgrid.server.api.user.UserHelp.extractId;
 @Controller
 @RestController
 @RequestMapping("/decoration")
+@SecurityRequirement(name = "bearerAuth")
 public class DecorationController{
 	private final DecorationRepository decorationRepository;
 	private final AccessService accessService;
@@ -49,6 +48,4 @@ public class DecorationController{
 				decorationRequest.getChatId()
 		);
 	}
-
-
 }

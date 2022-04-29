@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +26,7 @@ import static ru.comgrid.server.security.UserRole.ROLE_ADMIN;
 
 @RestController
 @RequestMapping(value = "/user", produces = "application/json; charset=utf-8")
+@SecurityRequirement(name = "bearerAuth")
 public class UserController{
 
     private final AppProperties appProperties;

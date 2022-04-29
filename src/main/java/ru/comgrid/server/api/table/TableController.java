@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -11,8 +12,6 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +27,7 @@ import ru.comgrid.server.repository.ChatParticipantsRepository;
 import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.InvitationRepository;
 import ru.comgrid.server.repository.PersonRepository;
+import ru.comgrid.server.security.AppProperties;
 import ru.comgrid.server.security.annotation.CurrentUser;
 import ru.comgrid.server.security.user.info.UserPrincipal;
 import ru.comgrid.server.util.EnumSet0;
@@ -49,6 +49,7 @@ import java.util.List;
  */
 @RestController
 @RequestMapping(value = "/table", produces = "application/json; charset=utf-8")
+@SecurityRequirement(name = "bearerAuth")
 public class TableController{
 
     private final ChatRepository chatRepository;
@@ -56,8 +57,8 @@ public class TableController{
     private final PersonRepository personRepository;
     private final FileController fileController;
     private final InvitationRepository invitationRepository;
-
     private final AccessService accessService;
+    private final AppProperties appProperties;
 
     /**
      * @hidden
@@ -68,7 +69,8 @@ public class TableController{
         @Autowired PersonRepository personRepository,
         @Autowired FileController fileController,
         @Autowired InvitationRepository invitationRepository,
-        @Autowired AccessService accessService
+        @Autowired AccessService accessService,
+        @Autowired AppProperties appProperties
     ){
         this.chatRepository = chatRepository;
         this.participantsRepository = participantsRepository;
@@ -76,6 +78,7 @@ public class TableController{
         this.fileController = fileController;
         this.invitationRepository = invitationRepository;
         this.accessService = accessService;
+        this.appProperties = appProperties;
     }
 
 //    @Operation(requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(mediaType = "multipart/form-data")))
@@ -98,7 +101,7 @@ public class TableController{
     private void checkBorders(int width, int height){
         if(width <= 0 || height <= 0)
             throw new OutOfBoundsRequestException("negative_size");
-        if(width * height > 1_000_000)
+        if(width*height > appProperties.getTable().getMaxTableSize())
             throw new OutOfBoundsRequestException("too_large");
     }
 
