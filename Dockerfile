@@ -1,4 +1,4 @@
-FROM openjdk:17.0.2-jdk-slim
+FROM openjdk:17-alpine
 
 VOLUME /tmp
 # Copy the jar to the production image from the builder stage.

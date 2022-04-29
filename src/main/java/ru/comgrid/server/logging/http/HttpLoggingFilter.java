@@ -35,6 +35,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 public class HttpLoggingFilter extends OncePerRequestFilter{
 	private static final ObjectMapper objectMapper = new ObjectMapper();
 	private final TraceRepository<HttpTrace> httpTraceRepository;
+	private static final String json = "application/json";
 
 	public HttpLoggingFilter(TraceRepository<HttpTrace> httpTraceRepository){
 		this.httpTraceRepository = httpTraceRepository;
@@ -104,7 +105,8 @@ public class HttpLoggingFilter extends OncePerRequestFilter{
 		);
 		private static final Set<Pattern> ignoredPatterns = Set.of(
 			Pattern.compile(".*\\.css"),
-			Pattern.compile(".*\\.js")
+			Pattern.compile(".*\\.js"),
+			Pattern.compile(".*/images/.*")
 		);
 		static boolean isIgnored(String request){
 			if(ignoredRequests.contains(request))
