@@ -10,10 +10,9 @@ import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.security.config.annotation.web.messaging.MessageSecurityMetadataSourceRegistry;
 import org.springframework.security.config.annotation.web.socket.AbstractSecurityWebSocketMessageBrokerConfigurer;
-import org.springframework.security.messaging.context.SecurityContextChannelInterceptor;
-import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
-import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
+import org.springframework.web.socket.config.annotation.*;
 import ru.comgrid.server.exception.ExceptionMessageConverter;
+import ru.comgrid.server.security.AppProperties;
 import ru.comgrid.server.security.destination.UserSubscriptionInterceptor;
 
 import java.util.List;
@@ -21,16 +20,19 @@ import java.util.List;
 @Configuration
 @EnableWebSocketMessageBroker
 @Order(Ordered.HIGHEST_PRECEDENCE)
-public class WebsocketConfig extends AbstractSecurityWebSocketMessageBrokerConfigurer{
+public class WebsocketConfig extends AbstractSecurityWebSocketMessageBrokerConfigurer implements WebSocketConfigurer{
     private final UserSubscriptionInterceptor userSubscriptionInterceptor;
     private final AuthChannelInterceptor authInterceptor;
+    private final AppProperties appProperties;
 
     public WebsocketConfig(
         @Autowired UserSubscriptionInterceptor userSubscriptionInterceptor,
-        @Autowired AuthChannelInterceptor authInterceptor
+        @Autowired AuthChannelInterceptor authInterceptor,
+        @Autowired AppProperties appProperties
     ){
         this.userSubscriptionInterceptor = userSubscriptionInterceptor;
         this.authInterceptor = authInterceptor;
+        this.appProperties = appProperties;
     }
 
     @Override
@@ -58,6 +60,7 @@ public class WebsocketConfig extends AbstractSecurityWebSocketMessageBrokerConfi
         registry.setApplicationDestinationPrefixes("/connection");
     }
 
+
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry){
         registry.addEndpoint("/websocket").setAllowedOrigins("https://comgrid.ru").withSockJS();
@@ -69,5 +72,15 @@ public class WebsocketConfig extends AbstractSecurityWebSocketMessageBrokerConfi
         return true;
     }
 
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registration){
+        registration
+            .addDecoratorFactory(DelegatingWebsocketHandler::new)
+            .setMessageSizeLimit(appProperties.getWebsocket().getMaxMessageSizeBytes());
+    }
+
+    @Override
+    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry){
+    }
 }
 

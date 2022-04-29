@@ -17,7 +17,7 @@ class OnUnauthorizedRequestEntryPoint : AuthenticationEntryPoint {
         httpServletResponse: HttpServletResponse,
         e: AuthenticationException,
     ) {
-        logger.error("Responding with unauthorized error. Message - {}", e.message)
+        logger.error("Responding with unauthorized error.")
         e.printStackTrace()
         httpServletResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, e.localizedMessage)
     }

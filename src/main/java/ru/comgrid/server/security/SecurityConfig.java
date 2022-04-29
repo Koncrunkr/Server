@@ -1,9 +1,6 @@
 package ru.comgrid.server.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.actuate.trace.http.HttpTraceRepository;
-import org.springframework.boot.actuate.trace.http.InMemoryHttpTraceRepository;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -131,7 +128,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
     }
 
 	@Bean
-	public TraceRepository<HttpTrace> httpTraceTraceRepository(@Value("${ru.comgrid.trace.max-count}") int capacity){
-		return new InMemoryTraceRepository<>(capacity);
+	public TraceRepository<HttpTrace> httpTraceTraceRepository(AppProperties appProperties){
+		return new InMemoryTraceRepository<>(appProperties.getHttp().getTraceMaxCount());
 	}
 }
