@@ -17,13 +17,13 @@ jobs:
       -
         name: Checkout
         uses: actions/checkout@v3
-      -
-        name: Add application.properties
-        uses: timheuer/base64-to-file@v1.1
-        with:
-          fileName: 'application.properties'
-          fileDir: './src/main/resources/'
-          encodedString: ${{ secrets.APPLICATION_PROPERTIES }}
+#      -
+#        name: Add application.properties
+#        uses: timheuer/base64-to-file@v1.1
+#        with:
+#          fileName: 'application.properties'
+#          fileDir: './src/main/resources/'
+#          encodedString: ${{ secrets.APPLICATION_PROPERTIES }}
       -
         name: Add comgrid.ru.jks
         uses: timheuer/base64-to-file@v1.1
