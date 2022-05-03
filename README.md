@@ -34,4 +34,14 @@ these values:
 # vk service token from https://vk.com/apps?act=manage currently not in use
 #ru.comgrid.auth.vkAccessToken=
 ```
+
+| Метод           | Корень 1            | Корень 2           |
+|-----------------|---------------------|--------------------|
+| В лоб           | -57.41713566385335  | 32.039743232742175 |
+| Кремер          | -57.417135663846246 | 32.03974323273819  |
+| Гаусс           | -57.417135663794674 | 32.039743232710336 |
+| Гаусс с выбором | -57.41713566381257  | 32.03974323272017  |
+| Истинный корень | -57.4171356638126   | 32.0397432327202   |
+
+
 To compile `fat jar` use command `mvn clean install spring-boot:repackage -DskipTests`
