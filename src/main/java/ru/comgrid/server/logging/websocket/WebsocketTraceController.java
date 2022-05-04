@@ -13,6 +13,7 @@ import static ru.comgrid.server.security.UserRole.ROLE_ADMIN;
 
 @RestController
 @ConditionalOnProperty(prefix = "ru.comgrid.websocket", name = "trace-enabled")
+@SecurityRequirement(name = "bearerAuth")
 public class WebsocketTraceController{
 	private final TraceRepository<WebsocketTrace> webSocketTraceRepository;
 
