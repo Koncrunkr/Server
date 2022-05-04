@@ -12,6 +12,7 @@ import static ru.comgrid.server.security.UserRole.ROLE_ADMIN;
 
 @RestController
 @ConditionalOnProperty(prefix = "ru.comgrid.http", name = "trace-enabled")
+@SecurityRequirement(name = "bearerAuth")
 public class HttpTraceController{
 	private final TraceRepository<HttpTrace> httpTraceRepository;
 
