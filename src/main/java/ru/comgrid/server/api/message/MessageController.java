@@ -19,6 +19,7 @@ import ru.comgrid.server.model.Right;
 import ru.comgrid.server.repository.CellUnionRepository;
 import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.MessageRepository;
+import ru.comgrid.server.security.AppProperties;
 import ru.comgrid.server.security.annotation.CurrentUser;
 import ru.comgrid.server.security.user.info.UserPrincipal;
 
@@ -36,17 +37,20 @@ public class MessageController{
     private final AccessService accessService;
     private final ChatRepository chatRepository;
     private final CellUnionRepository cellUnionRepository;
+    private final int chunkSize;
 
     public MessageController(
         @Autowired MessageRepository messageRepository,
         @Autowired AccessService accessService,
         @Autowired ChatRepository chatRepository,
-        @Autowired CellUnionRepository cellUnionRepository
+        @Autowired CellUnionRepository cellUnionRepository,
+        @Autowired AppProperties appProperties
     ){
         this.messageRepository = messageRepository;
         this.chatRepository = chatRepository;
         this.cellUnionRepository = cellUnionRepository;
         this.accessService = accessService;
+        chunkSize = appProperties.getTable().getSearchChunkSize();
     }
 
     @Operation(
@@ -65,7 +69,8 @@ public class MessageController{
         @RequestParam(required = false, defaultValue = "0") long chatId,
         @RequestParam(required = false, defaultValue = "0") long sinceTimeMillis,
         @RequestParam(required = false, defaultValue = "0") long untilTimeMillis,
-        @RequestParam(required = false, defaultValue = "0") int chunkNumber
+        @RequestParam(required = false, defaultValue = "0") int chunkNumber,
+        @RequestParam(required = false, defaultValue = "false") boolean exactMatch
     ){
         var userId = UserHelp.extractId(user);
 
@@ -73,27 +78,48 @@ public class MessageController{
             throw new OutOfBoundsRequestException("time.negative-or-future");
         }
 
-        if(chatId != -1){ // particular chat
+        int offset = calculateOffset(chunkNumber);
+        if(chatId != 0){ // particular chat
             if(!accessService.hasAccessTo(userId, chatId, Right.Read)){
                 throw new IllegalAccessException("chat.read_messages");
             }
 
             if(sinceTimeMillis == TIME_NOT_SPECIFIED && untilTimeMillis == TIME_NOT_SPECIFIED){
-                return messageRepository.findSimilarInChat(chatId, text, 0, 10);
+                if(exactMatch){
+                    return messageRepository.findExactInChat(chatId, text, offset, chunkSize);
+                }else{
+                    return messageRepository.findSimilarInChat(chatId, text, offset, chunkSize);
+                }
             }else{
                 LocalDateTime since = toDateTime(sinceTimeMillis);
                 LocalDateTime until = toDateTime(untilTimeMillis);
-                return messageRepository.findSimilarInChatForPeriod(chatId, text, 0, 10, since, until);
+                if(exactMatch){
+                    return messageRepository.findExactInChatForPeriod(chatId, text, offset, chunkSize, since, until);
+                }else{
+                    return messageRepository.findSimilarInChatForPeriod(chatId, text, offset, chunkSize, since, until);
+                }
             }
         }else{
             if(sinceTimeMillis == TIME_NOT_SPECIFIED && untilTimeMillis == TIME_NOT_SPECIFIED){
-                return messageRepository.findSimilar(userId, text, 0, 10);
+                if(exactMatch){
+                    return messageRepository.findExact(userId, text, offset, chunkSize);
+                }else{
+                    return messageRepository.findSimilar(userId, text, offset, chunkSize);
+                }
             }else{
                 LocalDateTime since = toDateTime(sinceTimeMillis);
                 LocalDateTime until = toDateTime(untilTimeMillis);
-                return messageRepository.findSimilarForPeriod(userId, text, 0, 10, since, until);
+                if(exactMatch){
+                    return messageRepository.findExactForPeriod(userId, text, offset, chunkSize, since, until);
+                }else{
+                    return messageRepository.findSimilarForPeriod(userId, text, offset, chunkSize, since, until);
+                }
             }
         }
+    }
+
+    private int calculateOffset(int chunkNumber){
+        return chunkNumber*chunkSize;
     }
 
     @Operation(summary = "get messages of chat", description = "Get messages of table in given square with specified topLeft and bottomRight point.")
@@ -159,7 +185,7 @@ public class MessageController{
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         Chat chat = chatRepository.findById(chatId).get();
 
-        if(TableHelp.bordersWrong(chat, new MessageUnionRequest(chatId, xcoordLeftTop, ycoordLeftTop, xcoordRightBottom, ycoordRightBottom))){
+        if(bordersWrong(chat, new MessageUnionRequest(chatId, xcoordLeftTop, ycoordLeftTop, xcoordRightBottom, ycoordRightBottom))){
             throw new OutOfBoundsRequestException("chat.out_of_bounds");
         }
 

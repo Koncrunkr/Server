@@ -56,5 +56,6 @@ public class AppProperties{
 	@Getter
 	public static class Table{
 		private int maxTableSize;
+		private int searchChunkSize;
 	}
 }

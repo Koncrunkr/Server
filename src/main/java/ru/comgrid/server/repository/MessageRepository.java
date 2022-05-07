@@ -1,7 +1,9 @@
 package ru.comgrid.server.repository;
 
+import org.hibernate.annotations.NamedNativeQuery;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
 import ru.comgrid.server.model.Message;
 import ru.comgrid.server.model.MessageId;
@@ -11,7 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
-public interface MessageRepository extends JpaRepository<Message, MessageId>{
+public interface MessageRepository extends CrudRepository<Message, MessageId>{
     Optional<Message> findMessageByChatIdAndXAndY(@Param("chatId") Long chatId, @Param("x") Integer x, @Param("y") Integer y);
 
     @Query("""
@@ -40,7 +42,9 @@ public interface MessageRepository extends JpaRepository<Message, MessageId>{
         @Param("endTime") LocalDateTime endTime
     );
 
-    @Query("""
+    @Query(
+        nativeQuery = true,
+        value = """
         select * from message
         where message.text %> :text and message.chat_id=:chatId
         order by message.edited desc offset :offset limit :limit
@@ -52,7 +56,9 @@ public interface MessageRepository extends JpaRepository<Message, MessageId>{
         @Param("limit") int limit
     );
 
-    @Query("""
+    @Query(
+        nativeQuery = true,
+        value = """
         select message.* from message
         inner join table_participants on message.chat_id = table_participants.chat
         where text %> :text and table_participants.person=:personId and table_participants.rights & 1 = 1
@@ -75,7 +81,9 @@ public interface MessageRepository extends JpaRepository<Message, MessageId>{
      * @param endTime
      * @return
      */
-    @Query("""
+    @Query(
+        nativeQuery = true,
+        value = """
         select message.* from message
         inner join table_participants on message.chat_id = table_participants.chat
         where text %> :text and table_participants.person=:personId and table_participants.rights & 1 = 1
@@ -91,7 +99,9 @@ public interface MessageRepository extends JpaRepository<Message, MessageId>{
         @Param("endTime") LocalDateTime endTime
     );
 
-    @Query("""
+    @Query(
+        nativeQuery = true,
+        value = """
         select message.* from message
         where message.text %> :text and message.chat_id=:chatId
         and message.edited > :startTime and message.edited < :endTime
@@ -99,6 +109,72 @@ public interface MessageRepository extends JpaRepository<Message, MessageId>{
         """)
     List<Message> findSimilarInChatForPeriod(
         @Param("chatId") long chatId,
+        @Param("text") String text,
+        @Param("offset") int offset,
+        @Param("limit") int limit,
+        @Param("startTime") LocalDateTime startTime,
+        @Param("endTime") LocalDateTime endTime
+    );
+
+    @Query(
+        nativeQuery = true,
+        value = """
+        select message.* from message
+        where message.text ~* ('\\y' || :text || '\\y') and message.chat_id=:chatId
+        order by message.created desc offset :offset limit :limit
+        """
+    )
+    List<Message> findExactInChat(
+        @Param("chatId") long chatId,
+        @Param("text") String text,
+        @Param("offset") int offset,
+        @Param("limit") int limit
+    );
+
+    @Query(
+        nativeQuery = true,
+        value = """
+        select message.* from message
+        where message.text ~* ('\\y' || :text || '\\y') and message.chat_id=:chatId
+        and message.edited > :startTime and message.edited < :endTime
+        order by message.created desc offset :offset limit :limit
+        """
+    )
+    List<Message> findExactInChatForPeriod(
+        @Param("chatId") long chatId,
+        @Param("text") String text,
+        @Param("offset") int offset,
+        @Param("limit") int limit,
+        @Param("startTime") LocalDateTime startTime,
+        @Param("endTime") LocalDateTime endTime
+    );
+    @Query(
+        nativeQuery = true,
+        value = """
+        select message.* from message
+        inner join table_participants on message.chat_id = table_participants.chat
+        where message.text ~* ('\\y' || :text || '\\y') and table_participants.person=:personId and table_participants.rights & 1 = 1
+        order by message.created desc offset :offset limit :limit
+        """
+    )
+    List<Message> findExact(
+        @Param("personId") BigDecimal personId,
+        @Param("text") String text,
+        @Param("offset") int offset,
+        @Param("limit") int limit
+    );
+    @Query(
+        nativeQuery = true,
+        value = """
+        select message.* from message
+        inner join table_participants on message.chat_id = table_participants.chat
+        where message.text ~* ('\\y' || :text || '\\y') and table_participants.person=:personId and table_participants.rights & 1 = 1
+        and message.edited > :startTime and message.edited < :endTime
+        order by message.created desc offset :offset limit :limit
+        """
+    )
+    List<Message> findExactForPeriod(
+        @Param("personId") BigDecimal personId,
         @Param("text") String text,
         @Param("offset") int offset,
         @Param("limit") int limit,
