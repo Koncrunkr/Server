@@ -7,15 +7,13 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.lang.Nullable;
 
-import javax.validation.constraints.NotNull;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 public class MessagesRequest extends MessageUnionRequest{
     @Nullable
-    public long sinceDateTimeMillis;
+    public long sinceTimeMillis;
     @Nullable
-    public long untilDateTimeMillis;
+    public long untilTimeMillis;
 }

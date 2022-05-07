@@ -8,7 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import ru.comgrid.server.api.table.TableHelp;
 import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.exception.IllegalAccessException;
@@ -25,6 +24,8 @@ import ru.comgrid.server.security.user.info.UserPrincipal;
 
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static ru.comgrid.server.api.table.TableHelp.*;
 
 @RestController
 @RequestMapping(value = "/message", produces = "application/json; charset=utf-8")
@@ -48,6 +49,52 @@ public class MessageController{
         this.accessService = accessService;
     }
 
+    @Operation(
+        summary = "search for messages in user's chatlist or in particular chat",
+        description = """
+            Get messages of either user's chatlist or single chat,
+            that contain similar text to user's input
+            """
+    )
+    @ApiResponse(responseCode = "403", description = "access.chat.read_messages, Cannot read messages in this chat")
+    @ApiResponse(responseCode = "422", description = "time.negative-or-future, means you've entered negative time or time that has not yet happened")
+    @GetMapping("/search")
+    public List<Message> searchForMessages(
+        @CurrentUser UserPrincipal user,
+        @RequestParam String text,
+        @RequestParam(required = false, defaultValue = "0") long chatId,
+        @RequestParam(required = false, defaultValue = "0") long sinceTimeMillis,
+        @RequestParam(required = false, defaultValue = "0") long untilTimeMillis,
+        @RequestParam(required = false, defaultValue = "0") int chunkNumber
+    ){
+        var userId = UserHelp.extractId(user);
+
+        if(checkTimeBorders(sinceTimeMillis, untilTimeMillis)){
+            throw new OutOfBoundsRequestException("time.negative-or-future");
+        }
+
+        if(chatId != -1){ // particular chat
+            if(!accessService.hasAccessTo(userId, chatId, Right.Read)){
+                throw new IllegalAccessException("chat.read_messages");
+            }
+
+            if(sinceTimeMillis == TIME_NOT_SPECIFIED && untilTimeMillis == TIME_NOT_SPECIFIED){
+                return messageRepository.findSimilarInChat(chatId, text, 0, 10);
+            }else{
+                LocalDateTime since = toDateTime(sinceTimeMillis);
+                LocalDateTime until = toDateTime(untilTimeMillis);
+                return messageRepository.findSimilarInChatForPeriod(chatId, text, 0, 10, since, until);
+            }
+        }else{
+            if(sinceTimeMillis == TIME_NOT_SPECIFIED && untilTimeMillis == TIME_NOT_SPECIFIED){
+                return messageRepository.findSimilar(userId, text, 0, 10);
+            }else{
+                LocalDateTime since = toDateTime(sinceTimeMillis);
+                LocalDateTime until = toDateTime(untilTimeMillis);
+                return messageRepository.findSimilarForPeriod(userId, text, 0, 10, since, until);
+            }
+        }
+    }
 
     @Operation(summary = "get messages of chat", description = "Get messages of table in given square with specified topLeft and bottomRight point.")
     @ApiResponse(responseCode = "403", description = "access.chat.read_messages, Cannot read messages in this chat")
@@ -66,15 +113,16 @@ public class MessageController{
         @SuppressWarnings("OptionalGetWithoutIsPresent")
         Chat chat = chatRepository.findById(messagesRequest.chatId).get();
 
-        if(TableHelp.bordersWrong(chat, messagesRequest)){
+        if(bordersWrong(chat, messagesRequest)){
             throw new OutOfBoundsRequestException();
         }
 
-        if(TableHelp.checkTimeBorders(messagesRequest)){
+        if(checkTimeBorders(messagesRequest.sinceTimeMillis, messagesRequest.untilTimeMillis)){
             throw new OutOfBoundsRequestException("time.negative-or-future");
         }
 
-        if(messagesRequest.sinceDateTimeMillis == 0 && messagesRequest.untilDateTimeMillis == 0){
+        if(messagesRequest.sinceTimeMillis == TIME_NOT_SPECIFIED &&
+            messagesRequest.untilTimeMillis == TIME_NOT_SPECIFIED){
             // neither since nor until are specified, do fast getLastMessages
             return getLastMessages(messagesRequest);
         }else{
@@ -133,8 +181,8 @@ public class MessageController{
         );
     }
     public List<Message> getMessagesBetween(@NotNull MessagesRequest messagesRequest){
-        LocalDateTime since = TableHelp.toDateTime(messagesRequest.sinceDateTimeMillis);
-        LocalDateTime until = TableHelp.toDateTime(messagesRequest.untilDateTimeMillis);
+        LocalDateTime since = toDateTime(messagesRequest.sinceTimeMillis);
+        LocalDateTime until = toDateTime(messagesRequest.untilTimeMillis);
 
         return messageRepository.findAllInChatBetween(
             messagesRequest.chatId,

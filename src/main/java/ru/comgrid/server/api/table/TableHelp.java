@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 
 public enum TableHelp{;
+    public static final long TIME_NOT_SPECIFIED = 0;
 
     public static LocalDateTime toDateTime(long millis){
         return LocalDateTime.ofEpochSecond(
@@ -43,11 +44,11 @@ public enum TableHelp{;
             messagesRequest.ycoordRightBottom >= chat.getHeight();
     }
 
-    public static boolean checkTimeBorders(MessagesRequest messagesRequest){
-        return messagesRequest.sinceDateTimeMillis < 0 ||
-            messagesRequest.sinceDateTimeMillis > System.currentTimeMillis() ||
-            messagesRequest.untilDateTimeMillis < 0 ||
-            messagesRequest.untilDateTimeMillis > System.currentTimeMillis();
+    public static boolean checkTimeBorders(long from, long to){
+        return (from != TIME_NOT_SPECIFIED && (from < 0 ||
+            from > System.currentTimeMillis())) ||
+            (to != TIME_NOT_SPECIFIED && (to < 0 ||
+            to > System.currentTimeMillis()));
     }
 
     public static boolean isInside(CellUnion inside, CellUnion outbound){
