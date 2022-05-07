@@ -54,7 +54,7 @@ public class MessageController{
     @ApiResponse(responseCode = "422", description = "out_of_bounds")
     @ApiResponse(responseCode = "422", description = "time.negative-or-future, means you've entered negative time or time that has not yet happened")
     @PostMapping("/list")
-    public ResponseEntity<List<Message>> getMessages(
+    public List<Message> getMessages(
         @CurrentUser UserPrincipal user,
         @RequestBody MessagesRequest messagesRequest
     ){
@@ -77,12 +77,6 @@ public class MessageController{
         if(messagesRequest.sinceDateTimeMillis == 0 && messagesRequest.untilDateTimeMillis == 0){
             // neither since nor until are specified, do fast getLastMessages
             return getLastMessages(messagesRequest);
-        }else if(messagesRequest.sinceDateTimeMillis == 0){
-            // only until is specified
-            return getMessagesUntil(messagesRequest);
-        }else if(messagesRequest.untilDateTimeMillis == 0){
-            // only since is specified
-            return getMessagesSince(messagesRequest);
         }else{
             // specified both since and until
             return getMessagesBetween(messagesRequest);
@@ -132,47 +126,17 @@ public class MessageController{
     }
 
 
-    public ResponseEntity<List<Message>> getLastMessages(@NotNull MessagesRequest messagesRequest){
-        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenOrderByEditedDesc(
+    public List<Message> getLastMessages(@NotNull MessagesRequest messagesRequest){
+        return messageRepository.findAllInChat(
             messagesRequest.chatId, messagesRequest.xcoordLeftTop, messagesRequest.xcoordRightBottom,
             messagesRequest.ycoordLeftTop, messagesRequest.ycoordRightBottom
         );
-
-        return ResponseEntity.ok(messages);
     }
-    public ResponseEntity<List<Message>> getMessagesUntil(@NotNull MessagesRequest messagesRequest){
-        LocalDateTime until = TableHelp.toDateTime(messagesRequest.untilDateTimeMillis);
-
-        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndEditedBeforeOrderByEditedDesc(
-            messagesRequest.chatId,
-            messagesRequest.xcoordLeftTop,
-            messagesRequest.xcoordRightBottom,
-            messagesRequest.ycoordLeftTop,
-            messagesRequest.ycoordRightBottom,
-            until
-        );
-
-        return ResponseEntity.ok(messages);
-    }
-    public ResponseEntity<List<Message>> getMessagesSince(@NotNull MessagesRequest messagesRequest){
-        LocalDateTime since = TableHelp.toDateTime(messagesRequest.sinceDateTimeMillis);
-
-        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndEditedAfterOrderByEditedDesc(
-            messagesRequest.chatId,
-            messagesRequest.xcoordLeftTop,
-            messagesRequest.xcoordRightBottom,
-            messagesRequest.ycoordLeftTop,
-            messagesRequest.ycoordRightBottom,
-            since
-        );
-
-        return ResponseEntity.ok(messages);
-    }
-    public ResponseEntity<List<Message>> getMessagesBetween(@NotNull MessagesRequest messagesRequest){
+    public List<Message> getMessagesBetween(@NotNull MessagesRequest messagesRequest){
         LocalDateTime since = TableHelp.toDateTime(messagesRequest.sinceDateTimeMillis);
         LocalDateTime until = TableHelp.toDateTime(messagesRequest.untilDateTimeMillis);
 
-        List<Message> messages = messageRepository.findAllByChatIdAndXBetweenAndYBetweenAndEditedBetweenOrderByEditedDesc(
+        return messageRepository.findAllInChatBetween(
             messagesRequest.chatId,
             messagesRequest.xcoordLeftTop,
             messagesRequest.xcoordRightBottom,
@@ -181,7 +145,5 @@ public class MessageController{
             since,
             until
         );
-
-        return ResponseEntity.ok(messages);
     }
 }
