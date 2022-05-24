@@ -55,7 +55,7 @@ public class UserController{
     @GetMapping("/info")
     public ResponseEntity<Person> getUserInfo(
         @CurrentUser UserPrincipal user,
-        @RequestParam(required = false, defaultValue = "null") String userId,
+        @RequestParam(required = false) String userId,
         @RequestParam(required = false, defaultValue = "false") boolean includeChats
     ){
         BigDecimal id;
