@@ -20,6 +20,7 @@ import ru.comgrid.server.security.AppProperties;
 import ru.comgrid.server.security.annotation.CurrentUser;
 import ru.comgrid.server.security.user.info.UserPrincipal;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static ru.comgrid.server.security.UserRole.ROLE_ADMIN;
@@ -54,13 +55,19 @@ public class UserController{
     @GetMapping("/info")
     public ResponseEntity<Person> getUserInfo(
         @CurrentUser UserPrincipal user,
+        @RequestParam(required = false, defaultValue = "null") String userId,
         @RequestParam(required = false, defaultValue = "false") boolean includeChats
     ){
-        var id = UserHelp.extractId(user);
+        BigDecimal id;
+        if(userId == null){
+            id = UserHelp.extractId(user);
+        }else{
+            id = UserHelp.extractId(userId);
+        }
         @SuppressWarnings("OptionalGetWithoutIsPresent") // We know because authentication took place
         Person person = personRepository.findById(id).get();
 
-        if(includeChats){
+        if(includeChats && userId == null){
             List<Long> chatIds = chatParticipantsRepository.findAllChatsByPerson(
                 person.getId()
             );
