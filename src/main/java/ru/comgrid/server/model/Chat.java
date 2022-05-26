@@ -61,11 +61,11 @@ public class Chat implements Serializable{
 
     @Getter
     @Setter
-    private int lastMessageX;
+    private Integer lastMessageX;
 
     @Getter
     @Setter
-    private int lastMessageY;
+    private Integer lastMessageY;
 
     @Transient
     private Iterable<Person> participants = null;
