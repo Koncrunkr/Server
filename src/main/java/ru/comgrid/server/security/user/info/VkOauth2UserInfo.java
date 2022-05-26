@@ -15,7 +15,7 @@ public class VkOauth2UserInfo extends OAuth2UserInfo{
 
 	@Override
 	public String getName(){
-		return getAttributes().get("first_name").toString() + getAttributes().get("last_name").toString();
+		return getAttributes().get("first_name").toString() + " " + getAttributes().get("last_name").toString();
 	}
 
 	@Override
