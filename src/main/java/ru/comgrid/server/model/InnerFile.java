@@ -1,10 +1,14 @@
 package ru.comgrid.server.model;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
 import javax.persistence.*;
 
 @Entity
+@Getter
+@Setter
 @ToString
 public class InnerFile{
     @Id
