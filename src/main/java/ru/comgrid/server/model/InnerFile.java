@@ -14,7 +14,6 @@ public class InnerFile{
     @Column()
     private String name;
 
-    @Lob
     @Column(nullable = false, unique = true)
     private String link;
 
