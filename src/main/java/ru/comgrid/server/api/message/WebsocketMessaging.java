@@ -11,9 +11,11 @@ import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.exception.RequestException;
 import ru.comgrid.server.model.CellUnion;
+import ru.comgrid.server.model.Chat;
 import ru.comgrid.server.model.Message;
 import ru.comgrid.server.model.MessageId;
 import ru.comgrid.server.repository.CellUnionRepository;
+import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.MessageRepository;
 import ru.comgrid.server.security.annotation.CurrentUser;
 import ru.comgrid.server.security.user.info.UserPrincipal;
@@ -33,6 +35,7 @@ public class WebsocketMessaging{
     private final MessageRepository messageRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final AccessService accessService;
+    private final ChatRepository chatRepository;
 
     /**
      * @hidden
@@ -41,12 +44,14 @@ public class WebsocketMessaging{
         @Autowired CellUnionRepository cellUnionRepository,
         @Autowired MessageRepository messageRepository,
         @Autowired SimpMessagingTemplate messagingTemplate,
-        @Autowired AccessService accessService
+        @Autowired AccessService accessService,
+        @Autowired ChatRepository chatRepository
     ){
         this.cellUnionRepository = cellUnionRepository;
         this.messageRepository = messageRepository;
         this.messagingTemplate = messagingTemplate;
         this.accessService = accessService;
+        this.chatRepository = chatRepository;
     }
 
 
@@ -77,6 +82,8 @@ public class WebsocketMessaging{
             chatMessage.setCreated(LocalDateTime.now(Clock.systemUTC()));
             chatMessage.setEdited(LocalDateTime.now(Clock.systemUTC()));
             message = messageRepository.save(chatMessage);
+            var chat = chatRepository.findById(chatMessage.getChatId()).get();
+            chat.setLastMessageId(message.getId());
         }else{
             oldMessage.get().setText(chatMessage.getText());
             oldMessage.get().setEdited(LocalDateTime.now());

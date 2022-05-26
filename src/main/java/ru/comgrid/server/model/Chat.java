@@ -28,6 +28,8 @@ import java.time.LocalDateTime;
  * </pre>
  */
 @Entity
+@Getter
+@Setter
 public class Chat implements Serializable{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -35,51 +37,34 @@ public class Chat implements Serializable{
     private Long id;
 
     @Column(length = 50, nullable = false)
-    @Getter
-    @Setter
     private String name;
 
     @Column(precision = 40, nullable = false)
     @JsonSerialize(using = ToStringSerializer.class)
-    @Getter
-    @Setter
     private BigDecimal creator;
 
-    @Getter
-    @Setter
     @Column(nullable = false)
     private Integer width;
 
-    @Getter
-    @Setter
     @Column(nullable = false)
     private Integer height;
 
-//    @Schema(defaultValue = "url")
-//    @Getter
-//    @Setter
-//    @Column(nullable = false)
-//    private String avatar;
-
     @Schema(defaultValue = "url")
-    @Getter
-    @Setter
     @OneToOne
     private InnerFile avatar;
 
-    @Getter
-    @Setter
     @Column(nullable = false)
     private LocalDateTime created;
 
     @Getter
     @Setter
-    @Column
-    private Long lastMessageId;
+    private int lastMessageX;
 
-    @Transient
     @Getter
     @Setter
+    private int lastMessageY;
+
+    @Transient
     private Iterable<Person> participants = null;
 
     public Long getId() {
@@ -99,6 +84,11 @@ public class Chat implements Serializable{
         this.name = name;
         this.width = width;
         this.height = height;
-        this.avatar = avatar;
+        this.avatar = new InnerFile("avatar", avatar, FileType.IMAGE);
+    }
+
+    public void setLastMessageId(MessageId messageId){
+        this.lastMessageX = messageId.getX();
+        this.lastMessageY = messageId.getY();
     }
 }
