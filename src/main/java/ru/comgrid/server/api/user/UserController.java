@@ -139,6 +139,18 @@ public class UserController{
         personRepository.save(person);
     }
 
+    @GetMapping("/by_username")
+    public List<Person> getUsersByUsername(
+        @RequestParam String username
+    ){
+        if(username.startsWith("@"))
+            username = username.substring(1);
+        if(username.length() > 24)
+            throw new RequestException(400, "username.too_long");
+
+        return personRepository.findPeople(username);
+    }
+
     private void checkAdminKey(String adminKey){
         if(!appProperties.getAuth().getAdminKey().equals(adminKey))
             throw new IllegalAccessException("admin_key.wrong");

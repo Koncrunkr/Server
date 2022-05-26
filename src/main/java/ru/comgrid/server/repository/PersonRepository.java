@@ -13,10 +13,11 @@ import java.util.List;
 @Repository
 public interface PersonRepository extends JpaRepository<Person, BigDecimal> {
 
-    @Query("SELECT p FROM Person p " +
-            "WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
-            "ORDER BY p.name")
-    List<Person> findPeople(@Param("searchTerm") String searchTerm);
+    @Query(nativeQuery = true,
+        value = "SELECT p.id, p.username, p.avatar, p.name FROM person p " +
+        "WHERE p.username ~* ('%' || :username || '%') " +
+        "ORDER BY p.username")
+    List<Person> findPeople(@Param("username") String username);
 
     @Query("select (count(p) > 0) from Person p where p.id = :id")
     boolean existsById(@Param("id") @NonNull BigDecimal id);
