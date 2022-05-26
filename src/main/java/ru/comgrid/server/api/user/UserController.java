@@ -53,7 +53,7 @@ public class UserController{
 
     @Operation(summary = "Get user info")
     @GetMapping("/info")
-    public ResponseEntity<Person> getUserInfo(
+    public Person getUserInfo(
         @CurrentUser UserPrincipal user,
         @RequestParam(required = false) String userId,
         @RequestParam(required = false, defaultValue = "false") boolean includeChats
@@ -75,7 +75,7 @@ public class UserController{
             person.setChats(chats);
         }
 
-        return ResponseEntity.ok(person);
+        return person;
     }
 
     private static final SimpleGrantedAuthority anonymous = new SimpleGrantedAuthority("ROLE_ANONYMOUS");

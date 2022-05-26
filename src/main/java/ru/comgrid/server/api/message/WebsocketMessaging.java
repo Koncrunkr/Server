@@ -49,29 +49,15 @@ public class WebsocketMessaging{
         this.accessService = accessService;
     }
 
-//    @Transactional
-//    @MessageMapping("/table_message/edit_or_send")
-//    public void processNewOrEditMessage(
-//        @CurrentUser UserPrincipal user,
-//        @Payload Message chatMessage
-//    ){
-//        if(chatMessage.getId() != null){
-//            processEditMessage(user, chatMessage);
-//            return;
-//        }
-//
-//        Optional<Message> message = messageRepository.findMessageByChatIdAndXAndY(chatMessage.getChatId(), chatMessage.getX(), chatMessage.getY());
-//        if(message.isPresent()){
-//            chatMessage.setId(message.get().getId());
-//            processEditMessage(user, chatMessage);
-//        }else{
-//            processNewMessage(user, chatMessage);
-//        }
-//    }
 
     private void sendException(BigDecimal personId, RequestException requestException){
         messagingTemplate.convertAndSend(WebsocketDestination.USER.destination(personId), requestException);
     }
+
+//    @MessageMapping("/file")
+//    public void s(@Payload byte[] bytes, @Header("info") String str){
+//        System.out.println(str);
+//    }
 
     @Transactional
     @MessageMapping("/table_message/edit_or_send")
@@ -100,26 +86,6 @@ public class WebsocketMessaging{
         messagingTemplate.convertAndSend(WebsocketDestination.TABLE_MESSAGE.destination(chatMessage.getChatId()), message);
     }
 
-//    @Transactional
-//    @MessageMapping("/table_message/edit")
-//    public void processEditMessage(
-//        @CurrentUser UserPrincipal user,
-//        @Payload Message chatMessage
-//    ){
-//        BigDecimal personId = UserHelp.extractId(user);
-//        chatMessage.setSenderId(personId);
-//
-//        if(!accessService.hasAccessToEditMessage(personId, chatMessage)){
-//            return;
-//        }
-//
-//        Message oldMessage = messageRepository.getById(chatMessage.getId());
-//        oldMessage.setEdited(LocalDateTime.now(Clock.systemUTC()));
-//        oldMessage.setText(chatMessage.getText());
-//        Message message = messageRepository.save(oldMessage);
-//
-//        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_MESSAGE.destination(chatMessage.getChatId()), message);
-//    }
 
     @Transactional
     @MessageMapping("/table_cell_union")
