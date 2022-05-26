@@ -84,6 +84,7 @@ public class WebsocketMessaging{
             message = messageRepository.save(chatMessage);
             var chat = chatRepository.findById(chatMessage.getChatId()).get();
             chat.setLastMessageId(message.getId());
+            chatRepository.save(chat);
         }else{
             oldMessage.get().setText(chatMessage.getText());
             oldMessage.get().setEdited(LocalDateTime.now());

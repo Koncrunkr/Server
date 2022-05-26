@@ -19,4 +19,14 @@ public class InnerFile{
     @Enumerated(EnumType.ORDINAL)
     @Column(nullable = false)
     private FileType type;
+
+    public InnerFile(String name, String link, FileType type){
+        this.name = name;
+        this.link = link;
+        this.type = type;
+    }
+
+    public InnerFile(){
+
+    }
 }
