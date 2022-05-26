@@ -2,14 +2,15 @@ package ru.comgrid.server.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import java.math.BigDecimal;
 
 @Getter
+@ToString
 @Setter
 @Entity
 public class Decoration{

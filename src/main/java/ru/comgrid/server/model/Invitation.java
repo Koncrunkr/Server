@@ -3,11 +3,13 @@ package ru.comgrid.server.model;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.UUID;
 
 @NoArgsConstructor
+@ToString
 @Entity
 @Getter
 @Setter

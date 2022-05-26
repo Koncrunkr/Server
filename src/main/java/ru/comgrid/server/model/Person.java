@@ -6,9 +6,9 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.domain.Persistable;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import ru.comgrid.server.service.Provider;
 import ru.comgrid.server.util.GrantedAuthorityConverter;
 
@@ -31,6 +31,7 @@ import java.util.List;
  * </pre>
  */
 @Entity
+@ToString
 @Getter
 @Setter
 public class Person implements Serializable, Persistable<BigDecimal>{
@@ -42,7 +43,7 @@ public class Person implements Serializable, Persistable<BigDecimal>{
     @Column(length = 50, nullable = false)
     private String name;
 
-    @Column(length = 24, nullable = true)
+    @Column(length = 24)
     private String username;
 
     @Column(unique = true)

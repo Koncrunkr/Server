@@ -2,7 +2,9 @@ package ru.comgrid.server.model;
 
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import org.springframework.data.domain.Persistable;
 import ru.comgrid.server.util.EnumSet0;
 import ru.comgrid.server.util.RegularEnumSet0;
@@ -13,6 +15,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
+@ToString
 @IdClass(TableParticipant.class)
 @NoArgsConstructor
 public class TableParticipants implements Serializable, Persistable<TableParticipant>{

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.ToString;
 import org.springframework.data.domain.Persistable;
 import ru.comgrid.server.api.user.UserHelp;
 
@@ -28,6 +29,7 @@ import java.time.LocalDateTime;
  * </pre>
  */
 @Entity
+@ToString
 @Getter
 @Setter
 @IdClass(MessageId.class)

@@ -1,15 +1,17 @@
 package ru.comgrid.server.model;
 
+import lombok.ToString;
+
 import javax.persistence.*;
 
 @Entity
+@ToString
 public class InnerFile{
-
     @Id
     @GeneratedValue
     private Long id;
 
-    @Column(nullable = true)
+    @Column()
     private String name;
 
     @Lob
@@ -29,4 +31,5 @@ public class InnerFile{
     public InnerFile(){
 
     }
+
 }
