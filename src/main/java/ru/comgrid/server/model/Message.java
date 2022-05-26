@@ -59,6 +59,9 @@ public class Message implements Serializable, Persistable<MessageId>{
     @Column(nullable = false, columnDefinition = "text not null")
     private String text;
 
+    @OneToOne
+    private InnerFile file;
+
     @Transient
     @JsonIgnore
     private boolean isNew;

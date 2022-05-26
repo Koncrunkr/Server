@@ -55,11 +55,17 @@ public class Chat implements Serializable{
     @Column(nullable = false)
     private Integer height;
 
+//    @Schema(defaultValue = "url")
+//    @Getter
+//    @Setter
+//    @Column(nullable = false)
+//    private String avatar;
+
     @Schema(defaultValue = "url")
     @Getter
     @Setter
-    @Column(nullable = false)
-    private String avatar;
+    @OneToOne
+    private InnerFile avatar;
 
     @Getter
     @Setter
