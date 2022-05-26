@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import ru.comgrid.server.exception.IllegalAccessException;
 import ru.comgrid.server.exception.NotFoundException;
+import ru.comgrid.server.exception.RequestException;
 import ru.comgrid.server.model.Chat;
 import ru.comgrid.server.model.Person;
 import ru.comgrid.server.repository.ChatParticipantsRepository;
@@ -121,6 +122,21 @@ public class UserController{
             person.getAuthorities().add(adminAuthority);
             personRepository.save(person);
         }
+    }
+
+    @PostMapping("/username")
+    @Transactional
+    public void changeUsername(
+        @CurrentUser UserPrincipal user,
+        @RequestParam String username
+    ){
+        if(username.startsWith("@"))
+            username = username.substring(1);
+        if(username.length() > 24)
+            throw new RequestException(400, "username.too_long");
+        var person = personRepository.findById(user.getId()).get();
+        person.setUsername(username);
+        personRepository.save(person);
     }
 
     private void checkAdminKey(String adminKey){

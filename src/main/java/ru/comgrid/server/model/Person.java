@@ -42,10 +42,13 @@ public class Person implements Serializable, Persistable<BigDecimal>{
     @Column(length = 50, nullable = false)
     private String name;
 
+    @Column(length = 24, nullable = true)
+    private String username;
+
     @Column(unique = true)
     private String email;
 
-    @Column(nullable = false)
+    @OneToOne(optional = false)
     @Schema(defaultValue = "url")
     private InnerFile avatar;
 
@@ -78,11 +81,11 @@ public class Person implements Serializable, Persistable<BigDecimal>{
     @Convert(converter = GrantedAuthorityConverter.class)
     private List<GrantedAuthority> authorities;
 
-	public Person(BigDecimal id, String name, String email, InnerFile avatar, Provider provider){
+	public Person(BigDecimal id, String name, String email, String avatar, Provider provider){
 		this.id = id;
 		this.name = name;
 		this.email = email;
-		this.avatar = avatar;
+		this.avatar = new InnerFile("avatar", avatar, FileType.IMAGE);
 		this.provider = provider;
 		this.isNew = false;
 	}
