@@ -50,6 +50,7 @@ public class Person implements Serializable, Persistable<BigDecimal>{
     private String email;
 
     @OneToOne(optional = false)
+    @JoinColumn(name = "avatar_id", referencedColumnName = "id")
     @Schema(defaultValue = "url")
     private InnerFile avatar;
 

@@ -62,6 +62,7 @@ public class Message implements Serializable, Persistable<MessageId>{
     private String text;
 
     @OneToOne
+    @JoinColumn(name = "file_id", referencedColumnName = "id")
     private InnerFile file;
 
     @Transient

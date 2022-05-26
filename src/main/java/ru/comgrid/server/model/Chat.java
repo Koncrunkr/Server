@@ -53,6 +53,7 @@ public class Chat implements Serializable{
 
     @Schema(defaultValue = "url")
     @OneToOne
+    @JoinColumn(name = "avatar_id", referencedColumnName = "id")
     private InnerFile avatar;
 
     @Column(nullable = false)
