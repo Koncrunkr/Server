@@ -1,7 +1,6 @@
 package ru.comgrid.server.api.table;
 
 import ru.comgrid.server.api.message.MessageUnionRequest;
-import ru.comgrid.server.api.message.MessagesRequest;
 import ru.comgrid.server.model.CellUnion;
 import ru.comgrid.server.model.Chat;
 
@@ -44,11 +43,15 @@ public enum TableHelp{;
             messagesRequest.ycoordRightBottom >= chat.getHeight();
     }
 
+    public static boolean bordersWrong(Chat chat, int x, int y){
+        return x < 0 || y < 0 || x >= chat.getWidth() || y > chat.getHeight();
+    }
+
     public static boolean checkTimeBorders(long from, long to){
         return (from != TIME_NOT_SPECIFIED && (from < 0 ||
             from > System.currentTimeMillis())) ||
             (to != TIME_NOT_SPECIFIED && (to < 0 ||
-            to > System.currentTimeMillis()));
+                to > System.currentTimeMillis()));
     }
 
     public static boolean isInside(CellUnion inside, CellUnion outbound){

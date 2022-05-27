@@ -11,11 +11,9 @@ import org.springframework.web.bind.annotation.*;
 import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.exception.IllegalAccessException;
+import ru.comgrid.server.exception.NotFoundException;
 import ru.comgrid.server.exception.OutOfBoundsRequestException;
-import ru.comgrid.server.model.CellUnion;
-import ru.comgrid.server.model.Chat;
-import ru.comgrid.server.model.Message;
-import ru.comgrid.server.model.Right;
+import ru.comgrid.server.model.*;
 import ru.comgrid.server.repository.CellUnionRepository;
 import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.MessageRepository;
@@ -120,6 +118,28 @@ public class MessageController{
 
     private int calculateOffset(int chunkNumber){
         return chunkNumber*chunkSize;
+    }
+
+    @GetMapping("/")
+    public Message getMessage(
+        @CurrentUser UserPrincipal user,
+        @RequestParam long chatId,
+        @RequestParam int x,
+        @RequestParam int y
+    ){
+        var userId = UserHelp.extractId(user);
+
+        if(!accessService.hasAccessTo(userId, chatId, Right.Read)){
+            throw new IllegalAccessException("chat.read_message");
+        }
+
+        Chat chat = chatRepository.findById(chatId).get();
+        if(bordersWrong(chat, x, y)){
+            throw new OutOfBoundsRequestException();
+        }
+
+        return messageRepository.findById(new MessageId(chatId, x, y))
+            .orElseThrow(() -> new NotFoundException("message.not_found"));
     }
 
     @Operation(summary = "get messages of chat", description = "Get messages of table in given square with specified topLeft and bottomRight point.")
