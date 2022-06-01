@@ -41,12 +41,12 @@ public class RGBColor implements Color{
 
     @Override
     public int getRed(){
-        return (this.color >> 16) & 0xFF;
+        return (this.color >>> 16) & 0xFF;
     }
 
     @Override
     public int getGreen(){
-        return (this.color >> 8) & 0xFF;
+        return (this.color >>> 8) & 0xFF;
     }
 
     @Override
