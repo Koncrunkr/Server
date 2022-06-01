@@ -10,6 +10,8 @@ import lombok.ToString;
 import org.springframework.data.domain.Persistable;
 import org.springframework.security.core.GrantedAuthority;
 import ru.comgrid.server.service.Provider;
+import ru.comgrid.server.util.Color;
+import ru.comgrid.server.util.ColorConverter;
 import ru.comgrid.server.util.GrantedAuthorityConverter;
 
 import javax.persistence.*;
@@ -76,6 +78,10 @@ public class Person implements Serializable, Persistable<BigDecimal>{
     @Column(nullable = false)
     private Provider provider;
 
+    @Column
+    @Convert(converter = ColorConverter.class)
+    private Color color;
+
     @Transient
     private List<Chat> chats = null;
 
@@ -83,8 +89,8 @@ public class Person implements Serializable, Persistable<BigDecimal>{
     @Convert(converter = GrantedAuthorityConverter.class)
     private List<GrantedAuthority> authorities;
 
-	public Person(BigDecimal id, String name, String email, String avatar, Provider provider){
-		this.id = id;
+    public Person(BigDecimal id, String name, String email, String avatar, Provider provider){
+        this.id = id;
 		this.name = name;
 		this.email = email;
 		this.avatar = new InnerFile("avatar", avatar, FileType.IMAGE);

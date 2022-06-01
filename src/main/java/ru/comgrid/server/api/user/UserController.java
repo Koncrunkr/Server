@@ -20,6 +20,7 @@ import ru.comgrid.server.repository.PersonRepository;
 import ru.comgrid.server.security.AppProperties;
 import ru.comgrid.server.security.annotation.CurrentUser;
 import ru.comgrid.server.security.user.info.UserPrincipal;
+import ru.comgrid.server.util.Color;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -74,6 +75,11 @@ public class UserController{
             );
             List<Chat> chats = chatRepository.findAllById(chatIds);
             person.setChats(chats);
+        }
+
+        if(person.getColor() == null){
+            person.setColor(Color.randomColor());
+            personRepository.save(person);
         }
 
         return person;
