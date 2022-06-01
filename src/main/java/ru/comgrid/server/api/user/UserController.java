@@ -5,10 +5,12 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
 import ru.comgrid.server.exception.IllegalAccessException;
 import ru.comgrid.server.exception.NotFoundException;
 import ru.comgrid.server.exception.RequestException;
@@ -66,8 +68,9 @@ public class UserController{
         }else{
             id = UserHelp.extractId(userId);
         }
-        @SuppressWarnings("OptionalGetWithoutIsPresent") // We know because authentication took place
-        Person person = personRepository.findById(id).get();
+        Person person = personRepository.findById(id).orElseThrow(
+            () -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "user.not_found")
+        );
 
         if(includeChats && userId == null){
             List<Long> chatIds = chatParticipantsRepository.findAllChatsByPerson(
