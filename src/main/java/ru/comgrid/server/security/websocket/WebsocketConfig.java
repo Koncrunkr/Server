@@ -63,8 +63,8 @@ public class WebsocketConfig extends AbstractSecurityWebSocketMessageBrokerConfi
 
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry){
-        registry.addEndpoint("/websocket").setAllowedOrigins("https://comgrid.ru").withSockJS();
-        registry.addEndpoint("/websocket").setAllowedOrigins("https://comgrid.ru");
+        registry.addEndpoint("/websocket").setAllowedOrigins("https://comgrid.ru", "http://localhost:3000", "http://localhost:8080").withSockJS();
+        registry.addEndpoint("/websocket").setAllowedOrigins("https://comgrid.ru", "http://localhost:3000", "http://localhost:8080");
     }
 
     @Override
