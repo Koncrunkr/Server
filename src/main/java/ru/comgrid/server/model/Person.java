@@ -80,6 +80,7 @@ public class Person implements Serializable, Persistable<BigDecimal>{
 
     @Column
     @Convert(converter = ColorConverter.class)
+    @JsonSerialize(using = ToStringSerializer.class)
     private Color color;
 
     @Transient

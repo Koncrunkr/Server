@@ -6,16 +6,16 @@ import java.util.regex.Pattern;
 
 public interface Color{
 
-    Pattern rgbaPattern = Pattern.compile("rgba\\((%d), (%d), (%d), (%f)\\)");
-    List<Integer> beautifulColors = List.of(
-        0xc013e6,
-        0x1806cb,
-        0x0004df,
-        0xe93030,
-        0x00d4ff,
-        0x55f53b,
-        0xa21ef2,
-        0xdaf728
+    Pattern rgbaPattern = Pattern.compile("rgba\\((\\d{1,3}), (\\d{1,3}), (\\d{1,3}), (\\d(?:\\.\\d+)?)\\)");
+    List<RGBColor> beautifulColors = List.of(
+        new RGBColor(0xc013e6, 1),
+        new RGBColor(0x1806cb, 1),
+        new RGBColor(0x0004df, 1),
+        new RGBColor(0xe93030, 1),
+        new RGBColor(0x00d4ff, 1),
+        new RGBColor(0x55f53b, 1),
+        new RGBColor(0xa21ef2, 1),
+        new RGBColor(0xdaf728, 1)
     );
 
     static Color ofString(String rgba){
@@ -45,10 +45,15 @@ public interface Color{
         while(first == second){
             second = ThreadLocalRandom.current().nextInt(beautifulColors.size());
         }
-        int firstColor = beautifulColors.get(first);
-        int secondColor = beautifulColors.get(second);
-        int between = (int) (firstColor + (secondColor - firstColor)/ThreadLocalRandom.current().nextFloat());
-        return new RGBColor(between, 30);
+        RGBColor firstColor = beautifulColors.get(first);
+        RGBColor secondColor = beautifulColors.get(second);
+        var interpolation = ThreadLocalRandom.current().nextFloat();
+        return new RGBColor(
+            (int) (firstColor.getRed() + (secondColor.getRed() - firstColor.getRed())*interpolation),
+            (int) (firstColor.getGreen() + (secondColor.getGreen() - firstColor.getGreen())*interpolation),
+            (int) (firstColor.getBlue() + (secondColor.getBlue() - firstColor.getBlue())*interpolation),
+            30
+        );
     }
 
     /**

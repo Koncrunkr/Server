@@ -58,4 +58,20 @@ public class RGBColor implements Color{
     public int getAlpha(){
         return alpha;
     }
+
+    @Override
+    public int hashCode(){
+        return color | (alpha << 24);
+    }
+
+    @Override
+    public boolean equals(Object o){
+        if(this == o) return true;
+        if(!(o instanceof Color color)) return false;
+
+        return getAlpha() == color.getAlpha() &&
+            getRed() == color.getRed() &&
+            getGreen() == color.getGreen() &&
+            getBlue() == color.getBlue();
+    }
 }
