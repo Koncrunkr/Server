@@ -1,5 +1,7 @@
 package ru.comgrid.server.model;
 
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.ToStringSerializer;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -22,6 +24,7 @@ public class CellUnion{
     @Column(nullable = false)
     private Long chatId;
 
+    @JsonSerialize(using = ToStringSerializer.class)
     @Column(nullable = false, precision = 40)
     private BigDecimal creatorId;
 
