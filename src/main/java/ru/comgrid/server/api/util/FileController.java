@@ -11,16 +11,17 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.comgrid.server.exception.ImageDoesNotExistException;
 import ru.comgrid.server.exception.ImageEmptyParamException;
 import ru.comgrid.server.exception.ImageWriteToFileException;
 import ru.comgrid.server.exception.InvalidLinkException;
+import ru.comgrid.server.model.FileType;
+import ru.comgrid.server.model.InnerFile;
+import ru.comgrid.server.repository.InnerFileRepository;
 
+import javax.validation.Valid;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -37,18 +38,42 @@ import static org.springframework.util.StringUtils.getFilenameExtension;
 public class FileController{
 	public final String fileRoute;
 	private final ImageService imageService;
-	private final RestTemplate restTemplate = new RestTemplate();
+	private final InnerFileRepository innerFileRepository;
 	private final Set<String> allowedExtensions;
 
 	public FileController(
 		@Value("${ru.comgrid.images.fileRoute}") String fileRoute,
 		@Value("${ru.comgrid.images.allowedExtensions}") List<String> allowedExtensions,
-		@Autowired ImageService imageService
+		@Autowired ImageService imageService,
+		@Autowired InnerFileRepository innerFileRepository
 	) throws IOException{
 		this.fileRoute = fileRoute;
 		this.allowedExtensions = new HashSet<>(allowedExtensions);
 		this.imageService = imageService;
+		this.innerFileRepository = innerFileRepository;
 		Files.createDirectories(Path.of(fileRoute));
+	}
+
+	@PostMapping("/upload/image")
+	public ImageEntity uploadImage(
+		@ModelAttribute @Valid Image file
+	){
+		ImageEntity imageEntity = uploadImage(file.file, null);
+		var innerFile = new InnerFile(file.name, imageEntity.getUrl(), FileType.IMAGE);
+		try{
+			innerFileRepository.save(innerFile);
+		}catch(RuntimeException e){
+			deleteFile(imageEntity.url);
+		}
+		return imageEntity;
+	}
+
+	private void deleteFile(String fileLink){
+		try{
+			Files.delete(Path.of(fileLink));
+		}catch(IOException e){
+			throw new RuntimeException(e);
+		}
 	}
 
 	/**
@@ -118,6 +143,13 @@ public class FileController{
 		return fileRoute + UUID.randomUUID() + ".webp";
 	}
 
+	@Getter
+	@Setter
+	@AllArgsConstructor
+	private static class Image{
+		String name;
+		MultipartFile file;
+	}
 
 	@NoArgsConstructor
 	@AllArgsConstructor
