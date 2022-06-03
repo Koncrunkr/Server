@@ -116,7 +116,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
     public FilterRegistrationBean<CorsFilter> simpleCorsFilter(){
 	    CorsConfiguration config = new CorsConfiguration();
 	    config.setAllowCredentials(true);
-	    config.setAllowedOrigins(List.of("https://comgrid.ru", "http://localhost:3000"));
+	    config.setAllowedOrigins(List.of("https://comgrid.ru", "https://comgrid.ru:444", "http://localhost:3000"));
 	    config.setAllowedMethods(List.of("GET", "HEAD", "POST", "PUT", "DELETE", "PATCH"));
 	    config.setAllowedHeaders(List.of("Content-Types", "Content-Type", "authorization", "x-auth-token"));
 
