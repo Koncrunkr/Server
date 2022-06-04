@@ -34,7 +34,7 @@ public class AppProperties{
 		private int maxMessageSizeBytes;
 		private boolean traceEnabled;
 		private int traceMaxCount;
-		private RabbitMqConfig rabbitMqConfig;
+		private RabbitMqConfig rabbitMq = new RabbitMqConfig();
 
 		@Getter
 		@Setter
