@@ -13,7 +13,7 @@ import org.springframework.security.config.annotation.web.socket.AbstractSecurit
 import org.springframework.web.socket.config.annotation.*;
 import ru.comgrid.server.exception.ExceptionMessageConverter;
 import ru.comgrid.server.security.AppProperties;
-import ru.comgrid.server.security.destination.UserSubscriptionInterceptor;
+import ru.comgrid.server.security.websocket.destination.UserSubscriptionInterceptor;
 
 import java.util.List;
 
@@ -58,6 +58,14 @@ public class WebsocketConfig extends AbstractSecurityWebSocketMessageBrokerConfi
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry){
         registry.setApplicationDestinationPrefixes("/connection");
+        registry.setUserDestinationPrefix("/amq/queue");
+        registry.enableStompBrokerRelay("table_message")
+            .setRelayHost("localhost")
+            .setRelayPort(61613)
+            .setSystemLogin("root")
+            .setSystemPasscode("THINK_OF_GOOD_PASSWORD")
+            .setClientLogin("root")
+            .setClientPasscode("THINK_OF_GOOD_PASSWORD");
     }
 
 

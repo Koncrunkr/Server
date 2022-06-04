@@ -54,7 +54,8 @@ public class FileController{
 		Files.createDirectories(Path.of(fileRoute));
 	}
 
-	@PostMapping("/upload/image")
+	@ResponseBody
+	@PostMapping("/upload")
 	public ImageEntity uploadImage(
 		@ModelAttribute @Valid Image file
 	){
@@ -97,7 +98,7 @@ public class FileController{
 		}
 	}
 
-	@GetMapping("/{fileLink}")
+	@GetMapping("/download/{fileLink}")
 	public ResponseEntity<byte[]> getFile(@PathVariable String fileLink){
 		fileLink = fileRoute + fileLink;
 		if(!fileLink.startsWith(fileRoute))

@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import ru.comgrid.server.api.WebsocketDestination;
 import ru.comgrid.server.api.table.TableHelp;
-import ru.comgrid.server.exception.*;
 import ru.comgrid.server.exception.IllegalAccessException;
+import ru.comgrid.server.exception.*;
 import ru.comgrid.server.model.*;
 import ru.comgrid.server.repository.CellUnionRepository;
 import ru.comgrid.server.repository.ChatParticipantsRepository;
@@ -118,7 +118,7 @@ public class AccessService{
     }
 
     private void sendException(BigDecimal personId, RequestException requestException){
-        messagingTemplate.convertAndSend(WebsocketDestination.USER.destination(personId), requestException);
+        messagingTemplate.convertAndSend(WebsocketDestination.USER.destination(personId, personId), requestException);
     }
 
     public boolean hasAccessToEditMessage(BigDecimal personId, Message message){

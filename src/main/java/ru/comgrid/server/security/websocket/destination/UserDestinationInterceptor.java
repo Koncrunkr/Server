@@ -1,4 +1,4 @@
-package ru.comgrid.server.security.destination;
+package ru.comgrid.server.security.websocket.destination;
 
 import org.springframework.stereotype.Component;
 

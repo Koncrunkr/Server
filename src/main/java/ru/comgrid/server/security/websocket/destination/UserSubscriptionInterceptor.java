@@ -1,4 +1,4 @@
-package ru.comgrid.server.security.destination;
+package ru.comgrid.server.security.websocket.destination;
 
 import org.springframework.lang.NonNull;
 import org.springframework.messaging.Message;
@@ -6,12 +6,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.authentication.RememberMeAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Component;
 import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.exception.IllegalAccessException;
@@ -50,24 +45,24 @@ public class UserSubscriptionInterceptor implements ChannelInterceptor{
         return message;
     }
 
-    private static final int DESTINATION_INDEX = 2;
-    private static final int DESTINATION_ID_INDEX = 3;
+    private static final int DESTINATION_INDEX = 3;
+    private static final int DESTINATION_ID_INDEX = 4;
+
     /**
      * fullDestination looks somewhat like this:
-     * /connection/{destination}/{destinationId}
+     * /amp/queue/{destination}.{destinationId}
      * so if we split it, destination would be on 2nd index, and destinationId on 4th
      */
     private void verifyAccessGranted(StompHeaderAccessor headerAccessor){
         String[] fullDestination = extractFullDestination(headerAccessor);
-        String destinationId = fullDestination[DESTINATION_ID_INDEX];
-        String destination = fullDestination[DESTINATION_INDEX];
+        String[] destination = fullDestination[DESTINATION_INDEX].split("\\.");
 
         Authentication user = (Authentication) headerAccessor.getUser();
         assert user != null;
         BigDecimal userId = UserHelp.extractId((UserPrincipal) user.getPrincipal());
 
-        if(!individualDestinationInterceptors.get(destination).hasAccess(userId, destinationId)){
-            throw new IllegalAccessException("destination." + destination);
+        if(!individualDestinationInterceptors.get(destination[0]).hasAccess(userId, destination[1])){
+            throw new IllegalAccessException("destination." + destination[0]);
         }
     }
 

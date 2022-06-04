@@ -1,8 +1,7 @@
-package ru.comgrid.server.security.destination;
+package ru.comgrid.server.security.websocket.destination;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.model.Right;
 import ru.comgrid.server.model.TableParticipant;
 import ru.comgrid.server.model.TableParticipants;

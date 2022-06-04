@@ -11,7 +11,6 @@ import ru.comgrid.server.api.user.AccessService;
 import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.exception.RequestException;
 import ru.comgrid.server.model.CellUnion;
-import ru.comgrid.server.model.Chat;
 import ru.comgrid.server.model.Message;
 import ru.comgrid.server.model.MessageId;
 import ru.comgrid.server.repository.CellUnionRepository;
@@ -56,7 +55,7 @@ public class WebsocketMessaging{
 
 
     private void sendException(BigDecimal personId, RequestException requestException){
-        messagingTemplate.convertAndSend(WebsocketDestination.USER.destination(personId), requestException);
+        messagingTemplate.convertAndSend(WebsocketDestination.USER.destination(personId, personId), requestException);
     }
 
 //    @MessageMapping("/file")
@@ -91,7 +90,7 @@ public class WebsocketMessaging{
             message = messageRepository.save(oldMessage.get());
         }
 
-        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_MESSAGE.destination(chatMessage.getChatId()), message);
+        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_MESSAGE.destination(personId, chatMessage.getChatId()), message);
     }
 
 
@@ -108,7 +107,7 @@ public class WebsocketMessaging{
         newCellUnion.setCreatorId(personId);
 
         CellUnion cellUnion = cellUnionRepository.save(newCellUnion);
-        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_UNION.destination(newCellUnion.getChatId()), cellUnion);
+        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_UNION.destination(personId, newCellUnion.getChatId()), cellUnion);
     }
 
     @Transactional
@@ -124,7 +123,7 @@ public class WebsocketMessaging{
         existingCellUnion.setCreatorId(personId);
 
         CellUnion cellUnion = cellUnionRepository.save(existingCellUnion);
-        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_UNION.destination(cellUnion.getChatId()), cellUnion);
+        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_UNION.destination(personId, cellUnion.getChatId()), cellUnion);
     }
 
 }

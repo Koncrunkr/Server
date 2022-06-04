@@ -53,7 +53,7 @@ open class WebsocketDecoration(
         }
 
         val saved = decorationRepository.save(decoration)
-        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_DECORATION.destination(saved.id), saved)
+        messagingTemplate.convertAndSend(WebsocketDestination.TABLE_DECORATION.destination(personId, saved.id), saved)
     }
 
     @Transactional
@@ -75,7 +75,7 @@ open class WebsocketDecoration(
     }
 
     private fun sendException(personId: BigDecimal, requestException: RequestException) {
-        messagingTemplate.convertAndSend(WebsocketDestination.USER.destination(personId), requestException)
+        messagingTemplate.convertAndSend(WebsocketDestination.USER.destination(personId, personId), requestException)
     }
     private fun Decoration.isNotReplacableBy(decoration: Decoration, personId: BigDecimal): Boolean {
         if(chatId != decoration.chatId){
