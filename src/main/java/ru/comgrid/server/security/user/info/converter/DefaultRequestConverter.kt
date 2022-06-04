@@ -4,11 +4,9 @@ import org.springframework.http.RequestEntity
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequestEntityConverter
 import org.springframework.stereotype.Service
-import ru.comgrid.server.security.user.info.extractor.Extractor
-import ru.comgrid.server.service.Provider
+import ru.comgrid.server.security.user.Provider
 import java.util.*
 import java.util.stream.Collectors
-import javax.persistence.Convert
 
 private val AUTH_PROVIDERS = Arrays
     .stream(Provider.values())

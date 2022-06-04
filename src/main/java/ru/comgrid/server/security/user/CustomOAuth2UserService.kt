@@ -26,7 +26,6 @@ import ru.comgrid.server.security.user.info.OAuth2UserInfoFactory.getOAuth2UserI
 import ru.comgrid.server.security.user.info.UserPrincipal
 import ru.comgrid.server.security.user.info.converter.RequestConverter
 import ru.comgrid.server.security.user.info.extractor.UserInfoExtractorService
-import ru.comgrid.server.service.Provider
 
 @Service
 class CustomOAuth2UserService(

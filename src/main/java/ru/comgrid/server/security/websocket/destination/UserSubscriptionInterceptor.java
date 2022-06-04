@@ -8,9 +8,9 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
-import ru.comgrid.server.api.user.UserHelp;
 import ru.comgrid.server.exception.IllegalAccessException;
 import ru.comgrid.server.security.user.info.UserPrincipal;
+import ru.comgrid.server.service.user.UserHelp;
 
 import java.math.BigDecimal;
 import java.util.HashMap;

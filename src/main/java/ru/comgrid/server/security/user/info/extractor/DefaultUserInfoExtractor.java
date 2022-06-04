@@ -2,7 +2,7 @@ package ru.comgrid.server.security.user.info.extractor;
 
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.stereotype.Service;
-import ru.comgrid.server.service.Provider;
+import ru.comgrid.server.security.user.Provider;
 
 import java.util.Arrays;
 import java.util.Map;

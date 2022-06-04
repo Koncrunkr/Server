@@ -9,7 +9,7 @@ import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.domain.Persistable;
 import org.springframework.security.core.GrantedAuthority;
-import ru.comgrid.server.service.Provider;
+import ru.comgrid.server.security.user.Provider;
 import ru.comgrid.server.util.Color;
 import ru.comgrid.server.util.ColorConverter;
 import ru.comgrid.server.util.GrantedAuthorityConverter;
@@ -51,7 +51,7 @@ public class Person implements Serializable, Persistable<BigDecimal>{
     @Column(unique = true)
     private String email;
 
-    @OneToOne(optional = false)
+    @OneToOne(optional = false, cascade = CascadeType.ALL)
     @JoinColumn(name = "avatar_id", referencedColumnName = "id")
     @Schema(defaultValue = "url")
     private InnerFile avatar;

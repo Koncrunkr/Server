@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import org.springframework.data.domain.Persistable;
-import ru.comgrid.server.api.user.UserHelp;
+import ru.comgrid.server.service.user.UserHelp;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -61,7 +61,7 @@ public class Message implements Serializable, Persistable<MessageId>{
     @Column(nullable = false, columnDefinition = "text not null")
     private String text;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "file_id", referencedColumnName = "id")
     private InnerFile file;
 

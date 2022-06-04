@@ -52,7 +52,7 @@ public class Chat implements Serializable{
     private Integer height;
 
     @Schema(defaultValue = "url")
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "avatar_id", referencedColumnName = "id")
     private InnerFile avatar;
 

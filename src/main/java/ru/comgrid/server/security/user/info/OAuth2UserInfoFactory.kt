@@ -1,7 +1,7 @@
 package ru.comgrid.server.security.user.info
 
 import ru.comgrid.server.security.exception.OAuth2AuthenticationProcessingException
-import ru.comgrid.server.service.Provider
+import ru.comgrid.server.security.user.Provider
 
 object OAuth2UserInfoFactory {
     private val AUTH_PROVIDERS = listOf(*Provider.values())

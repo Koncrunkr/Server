@@ -8,8 +8,7 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest
 import org.springframework.security.oauth2.core.endpoint.OAuth2ParameterNames
 import org.springframework.stereotype.Component
 import org.springframework.web.util.UriComponentsBuilder
-import ru.comgrid.server.security.user.info.extractor.Extractor
-import ru.comgrid.server.service.Provider
+import ru.comgrid.server.security.user.Provider
 
 private val vk = Provider.vk.toString()
 
