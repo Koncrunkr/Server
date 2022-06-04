@@ -45,12 +45,11 @@ public class UserSubscriptionInterceptor implements ChannelInterceptor{
         return message;
     }
 
-    private static final int DESTINATION_INDEX = 3;
-    private static final int DESTINATION_ID_INDEX = 4;
+    private static final int DESTINATION_INDEX = 2;
 
     /**
      * fullDestination looks somewhat like this:
-     * /amp/queue/{destination}.{destinationId}
+     * /queue/{destination}.{destinationId}
      * so if we split it, destination would be on 2nd index, and destinationId on 4th
      */
     private void verifyAccessGranted(StompHeaderAccessor headerAccessor){
@@ -72,7 +71,7 @@ public class UserSubscriptionInterceptor implements ChannelInterceptor{
         if(destinations.size() != 1)
             throw new IllegalArgumentException("Multiple destinations are not supported");
         String[] fullDestination = destinations.get(0).split("/");
-        if(fullDestination.length != 4)
+        if(fullDestination.length != 3)
             throw new IllegalArgumentException("Destination is not correct: " + destinations.get(0));
         return fullDestination;
     }

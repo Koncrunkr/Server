@@ -3,10 +3,10 @@ package ru.comgrid.server.api;
 import java.math.BigDecimal;
 
 public enum WebsocketDestination{
-	USER("/amq/queue/{personId}/user.{id}"),
-	TABLE_MESSAGE("/amq/queue/{personId}/table_message.{id}"),
-	TABLE_UNION("/amq/queue/{personId}/table_cell_union.{id}"),
-	TABLE_DECORATION("/amq/queue/{personId}/table_decoration.{id}");
+	USER("/queue/{personId}/user.{id}"),
+	TABLE_MESSAGE("/queue/{personId}/table_message.{id}"),
+	TABLE_UNION("/queue/{personId}/table_cell_union.{id}"),
+	TABLE_DECORATION("/queue/{personId}/table_decoration.{id}");
 
 	private final String destination;
 
