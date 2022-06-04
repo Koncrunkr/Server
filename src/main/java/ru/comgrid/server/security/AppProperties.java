@@ -1,12 +1,10 @@
 package ru.comgrid.server.security;
 
-import io.jsonwebtoken.io.Encoders;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.lang.NonNull;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,6 +34,18 @@ public class AppProperties{
 		private int maxMessageSizeBytes;
 		private boolean traceEnabled;
 		private int traceMaxCount;
+		private RabbitMqConfig rabbitMqConfig;
+
+		@Getter
+		@Setter
+		public static class RabbitMqConfig{
+			private String relayHost;
+			private int relayPort;
+			private String systemLogin;
+			private String systemPassword;
+			private String clientLogin;
+			private String clientPassword;
+		}
 	}
 
 	@Setter

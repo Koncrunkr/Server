@@ -1,5 +1,6 @@
 package ru.comgrid.server.security.websocket;
 
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.Ordered;
@@ -58,14 +59,15 @@ public class WebsocketConfig extends AbstractSecurityWebSocketMessageBrokerConfi
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry){
         registry.setApplicationDestinationPrefixes("/connection");
-        registry.setUserDestinationPrefix("/amq/queue");
-        registry.enableStompBrokerRelay("table_message")
-            .setRelayHost("localhost")
-            .setRelayPort(61613)
-            .setSystemLogin("root")
-            .setSystemPasscode("THINK_OF_GOOD_PASSWORD")
-            .setClientLogin("root")
-            .setClientPasscode("THINK_OF_GOOD_PASSWORD");
+        registry.setUserDestinationPrefix("/queue");
+        var rabbitConfig = appProperties.getWebsocket().getRabbitMqConfig();
+        registry.enableStompBrokerRelay()
+            .setRelayHost(rabbitConfig.getRelayHost())
+            .setRelayPort(rabbitConfig.getRelayPort())
+            .setSystemLogin(rabbitConfig.getSystemLogin())
+            .setSystemPasscode(rabbitConfig.getSystemPassword())
+            .setClientLogin(rabbitConfig.getClientLogin())
+            .setClientPasscode(rabbitConfig.getClientPassword());
     }
 
 
@@ -88,7 +90,7 @@ public class WebsocketConfig extends AbstractSecurityWebSocketMessageBrokerConfi
     }
 
     @Override
-    public void registerWebSocketHandlers(WebSocketHandlerRegistry registry){
+    public void registerWebSocketHandlers(@NotNull WebSocketHandlerRegistry registry){
     }
 }
 
