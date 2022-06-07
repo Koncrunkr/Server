@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.springframework.util.StringUtils.getFilenameExtension;
+import static org.springframework.util.StringUtils.*;
 
 @Service
 public class FileService{
@@ -123,7 +123,7 @@ public class FileService{
             if(!allowedExtensions.contains(filenameExtension))
                 throw new InvalidLinkException(fileLink + ", bad extension");
             //check whether it's legal uuid string
-            UUID.fromString(fileLink.substring(fileRoute.length(), fileLink.length() - filenameExtension.length() - 1));
+            UUID.fromString(stripFilenameExtension(getFilename(fileLink)));
             return ResponseEntity
                 .ok()
                 .contentType(new MediaType("image", filenameExtension))
