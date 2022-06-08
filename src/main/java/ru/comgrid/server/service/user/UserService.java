@@ -52,10 +52,8 @@ public class UserService{
         );
 
         if(includeChats && userId == null){
-            List<Long> chatIds = participantsRepository.findAllChatsByPerson(
-                person.getId()
-            );
-            List<Chat> chats = chatRepository.findAllById(chatIds);
+            assert person.getId() != null;
+            List<Chat> chats = chatRepository.findAllChatsByPerson(person.getId());
             person.setChats(chats);
         }
 
