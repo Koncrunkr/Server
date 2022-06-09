@@ -142,11 +142,12 @@ public class TableController{
     @GetMapping("/invitation_link")
     public InvitationLinkRequest getInvitationLink(
         @CurrentUser UserPrincipal user,
-        @RequestParam long chatId
+        @RequestParam long chatId,
+        @RequestParam(required = false, defaultValue = "true") boolean createIfNone
     ){
         var userId = UserHelp.extractId(user);
 
-        return invitationService.getOrCreateInvitationLink(chatId, userId);
+        return invitationService.getOrCreateInvitationLink(chatId, userId, createIfNone);
     }
 
     @ApiResponse(

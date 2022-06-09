@@ -7,6 +7,7 @@ import ru.comgrid.server.controller.table.InvitationLinkRequest;
 import ru.comgrid.server.controller.table.InvitationSuccessResponse;
 import ru.comgrid.server.exception.IllegalAccessException;
 import ru.comgrid.server.exception.InvalidLinkException;
+import ru.comgrid.server.exception.NotFoundException;
 import ru.comgrid.server.exception.RequestException;
 import ru.comgrid.server.model.Invitation;
 import ru.comgrid.server.model.Right;
@@ -56,14 +57,18 @@ public class InvitationService{
     }
 
     @NotNull
-    public InvitationLinkRequest getOrCreateInvitationLink(long chatId, BigDecimal userId){
+    public InvitationLinkRequest getOrCreateInvitationLink(long chatId, BigDecimal userId, boolean createIfNone){
         if(!accessService.hasAccessTo(userId, chatId, Right.AddUsers)){
             throw new IllegalAccessException("manage_users");
         }
 
         Invitation invitation = invitationRepository.findByChatId(chatId);
         if(invitation == null){
-            invitation = invitationRepository.save(new Invitation(chatId));
+            if(createIfNone){
+                invitation = invitationRepository.save(new Invitation(chatId));
+            }else{
+                throw new NotFoundException("invitation_link.not_found");
+            }
         }
 
         return new InvitationLinkRequest(invitation.getInvitationCode());
