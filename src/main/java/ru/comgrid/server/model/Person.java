@@ -18,6 +18,7 @@ import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -90,14 +91,17 @@ public class Person implements Serializable, Persistable<BigDecimal>{
     @Convert(converter = GrantedAuthorityConverter.class)
     private List<GrantedAuthority> authorities;
 
+    @Transient
+    private List<PersonSetting> settings = new ArrayList<>();
+
     public Person(BigDecimal id, String name, String email, String avatar, Provider provider){
         this.id = id;
-		this.name = name;
-		this.email = email;
-		this.avatar = new InnerFile("avatar", avatar, FileType.IMAGE);
-		this.provider = provider;
-		this.isNew = false;
-	}
+        this.name = name;
+        this.email = email;
+        this.avatar = new InnerFile("avatar", avatar, FileType.IMAGE);
+        this.provider = provider;
+        this.isNew = false;
+    }
 
     public Person() {}
 }

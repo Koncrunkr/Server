@@ -36,7 +36,8 @@ public class UserController{
     public Person getUserInfo(
         @CurrentUser UserPrincipal user,
         @RequestParam(required = false) String userId,
-        @RequestParam(required = false, defaultValue = "false") boolean includeChats
+        @RequestParam(required = false, defaultValue = "false") boolean includeChats,
+        @RequestParam(required = false, defaultValue = "false") boolean includeSettings
     ){
         BigDecimal id;
         if(userId == null){
@@ -44,7 +45,7 @@ public class UserController{
         }else{
             id = UserHelp.extractId(userId);
         }
-        return userService.getPersonById(userId, includeChats, id);
+        return userService.getPersonById(id, userId != null, includeChats, includeSettings);
     }
 
     @Operation(summary = "Check if user is logged in")
@@ -88,4 +89,27 @@ public class UserController{
         return userService.getUsersByUsername(username);
     }
 
+    @PostMapping("/setting")
+    @Transactional
+    public void setSetting(
+        @CurrentUser UserPrincipal user,
+        @RequestParam String setting,
+        @RequestParam String value
+    ){
+        var userId = user.getId();
+        userService.setSetting(userId, setting, value);
+    }
+
+    @ApiResponse(description = "setting.not_found", responseCode = "404")
+    @GetMapping("/setting")
+    public SettingResponse getSetting(
+        @CurrentUser UserPrincipal user,
+        @RequestParam String setting
+    ){
+        var userId = user.getId();
+        return new SettingResponse(
+            setting,
+            userService.getSettingValue(userId, setting)
+        );
+    }
 }

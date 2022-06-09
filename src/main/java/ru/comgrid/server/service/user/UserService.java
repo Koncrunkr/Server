@@ -13,9 +13,10 @@ import ru.comgrid.server.exception.NotFoundException;
 import ru.comgrid.server.exception.RequestException;
 import ru.comgrid.server.model.Chat;
 import ru.comgrid.server.model.Person;
-import ru.comgrid.server.repository.ChatParticipantsRepository;
+import ru.comgrid.server.model.PersonSetting;
 import ru.comgrid.server.repository.ChatRepository;
 import ru.comgrid.server.repository.PersonRepository;
+import ru.comgrid.server.repository.PersonSettingRepository;
 import ru.comgrid.server.security.AppProperties;
 import ru.comgrid.server.security.user.info.UserPrincipal;
 import ru.comgrid.server.util.ColorUtil;
@@ -29,32 +30,36 @@ import static ru.comgrid.server.security.UserRole.ROLE_ADMIN;
 public class UserService{
     private static final SimpleGrantedAuthority adminAuthority = new SimpleGrantedAuthority(ROLE_ADMIN);
     private final PersonRepository personRepository;
-    private final ChatParticipantsRepository participantsRepository;
+    private final PersonSettingRepository personSettingRepository;
     private final ChatRepository chatRepository;
     private final String existingAdminKey;
 
     public UserService(
         @Autowired PersonRepository personRepository,
-        @Autowired ChatParticipantsRepository participantsRepository,
+        @Autowired PersonSettingRepository personSettingRepository,
         @Autowired ChatRepository chatRepository,
         @Autowired AppProperties appProperties
     ){
         this.personRepository = personRepository;
-        this.participantsRepository = participantsRepository;
+        this.personSettingRepository = personSettingRepository;
         this.chatRepository = chatRepository;
         existingAdminKey = appProperties.getAuth().getAdminKey();
     }
 
     @NotNull
-    public Person getPersonById(String userId, boolean includeChats, BigDecimal id){
-        Person person = personRepository.findById(id).orElseThrow(
+    public Person getPersonById(BigDecimal personId, boolean otherPerson, boolean includeChats, boolean includeSettings){
+        Person person = personRepository.findById(personId).orElseThrow(
             () -> new HttpClientErrorException(HttpStatus.NOT_FOUND, "user.not_found")
         );
 
-        if(includeChats && userId == null){
-            assert person.getId() != null;
+        if(includeChats && !otherPerson){
             List<Chat> chats = chatRepository.findAllChatsByPerson(person.getId());
             person.setChats(chats);
+        }
+
+        if(includeSettings && !otherPerson){
+            List<PersonSetting> settings = personSettingRepository.findAllByPersonId(personId);
+            person.setSettings(settings);
         }
 
         if(person.getColor() == null){
@@ -113,5 +118,20 @@ public class UserService{
             throw new RequestException(400, "username.too_long");
 
         return personRepository.findPeople(username);
+    }
+
+    public void setSetting(BigDecimal personId, String setting, String value){
+        var personSetting = personSettingRepository.findByPersonIdAndSetting(personId, setting)
+            .orElseGet(() -> new PersonSetting(personId, setting));
+
+        personSetting.setValue(value);
+
+        personSettingRepository.save(personSetting);
+    }
+
+    public String getSettingValue(BigDecimal personId, String setting){
+        return personSettingRepository.findByPersonIdAndSetting(personId, setting)
+            .map(PersonSetting::getValue)
+            .orElseThrow(() -> new NotFoundException("setting.not_found"));
     }
 }
