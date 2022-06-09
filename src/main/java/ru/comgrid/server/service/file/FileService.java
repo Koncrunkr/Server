@@ -92,7 +92,7 @@ public class FileService{
     }
 
     private String getNewImageUrl(){
-        return fileRoute + UUID.randomUUID() + ".webp";
+        return fileRoute + "get/" + UUID.randomUUID() + ".webp";
     }
 
     @NotNull
