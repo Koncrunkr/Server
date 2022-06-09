@@ -1,5 +1,6 @@
 package ru.comgrid.server.service.table;
 
+import io.netty.util.internal.StringUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -59,11 +60,16 @@ public class TableService{
     @NotNull
     @Transactional
     public Chat createChat(NewChat newChat, BigDecimal userId){
-        ImageEntity imageEntity = fileService.uploadImage(newChat.getAvatarFile(), newChat.getAvatarLink());
+        if(StringUtil.isNullOrEmpty(newChat.getName()))
+            throw new RequestException(400, "name_empty");
         checkBorders(newChat.getWidth(), newChat.getHeight());
+
+        ImageEntity imageEntity = fileService.uploadImage(newChat.getAvatarFile(), newChat.getAvatarLink());
+
         Chat chat = new Chat(userId, newChat.getName(), newChat.getWidth(), newChat.getHeight(), imageEntity.getUrl());
         chat.setCreated(LocalDateTime.now(Clock.systemUTC()));
         chat = chatRepository.save(chat);
+
         participantsRepository.save(new TableParticipants(chat.getId(), userId, EnumSet0.allOf(Right.class), LocalDateTime.now(Clock.systemUTC())));
         return chat;
     }
