@@ -31,7 +31,6 @@ public class UserController{
     }
 
     @ApiResponse(responseCode = "404", description = "user.not_found. User does not exist.")
-
     @Operation(summary = "Get user info")
     @GetMapping("/info")
     public Person getUserInfo(

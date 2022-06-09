@@ -21,7 +21,7 @@ public interface ChatRepository extends JpaRepository<Chat, Long>{
 			inner join TableParticipants tp on tp.chat=c.id
 			left join Message m on c.lastMessageX=m.x and c.lastMessageY=m.y and m.chatId=c.id
 		where tp.person=:personId
-		order by m.created nulls last
+		order by m.created desc nulls last
 		""")
 	List<Chat> findAllChatsByPerson(@NotNull BigDecimal personId);
 }
