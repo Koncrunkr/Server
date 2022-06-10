@@ -58,10 +58,10 @@ public class WebsocketConfig extends AbstractSecurityWebSocketMessageBrokerConfi
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry){
-        registry.setApplicationDestinationPrefixes("/connection");
-        registry.setUserDestinationPrefix("/queue");
+        registry.setApplicationDestinationPrefixes("/connection", "/queue");
         var rabbitConfig = appProperties.getWebsocket().getRabbitMq();
-        registry.enableStompBrokerRelay("table_message", "table_cell_union", "user", "table_decoration")
+        registry
+            .enableStompBrokerRelay("/queue/table_message", "/queue/table_cell_union", "/queue/user", "/queue/table_decoration")
             .setRelayHost(rabbitConfig.getRelayHost())
             .setRelayPort(rabbitConfig.getRelayPort())
             .setSystemLogin(rabbitConfig.getSystemLogin())
